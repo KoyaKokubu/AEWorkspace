@@ -11,8 +11,8 @@
 #include "Utils/ValidationLayers.h"
 #include "Devices.h"
 #include "SwapChain.h"
-
 #include "GraphicsPipeline.h"
+#include "Model.h"
 
 namespace AE {
 
@@ -44,6 +44,8 @@ namespace AE {
 		void recordCommandBuffers();
 		void drawFrame();
 
+		void loadModels();
+
 		// systemFilePath : path to the system file which compiles shader files
 		const char* m_systemFilePath = SYSTEM_FILE_PATH;
 		const char* m_vertFilePath = VERT_SHADER_PATH;
@@ -58,6 +60,7 @@ namespace AE {
 		PipelineConfigInfo m_pipelineConfig;
 		std::unique_ptr<GraphicsPipeline> m_GraphicsPipeline;
 		std::vector<VkCommandBuffer> m_commandBuffers;
+		std::unique_ptr<Model> m_model;
 	};
 
 } // namespace AE

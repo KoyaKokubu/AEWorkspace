@@ -26,6 +26,7 @@ namespace AE {
 		createGraphicsPipeline();
 		m_swapChain.createFrameBuffers();
 		m_devices.createCommandPool();
+		loadModels();
 		createCommandBuffers();
 		recordCommandBuffers();
 		m_swapChain.createSyncObjects();
@@ -61,6 +62,8 @@ namespace AE {
 			vkDestroyImageView(m_devices.getLogicalDevice(), imageView, nullptr);
 		}
 		vkDestroySwapchainKHR(m_devices.getLogicalDevice(), m_swapChain.getSwapChain(), nullptr);
+		vkDestroyBuffer(m_devices.getLogicalDevice(), m_model->getVertexBuffer(), nullptr);
+		vkFreeMemory(m_devices.getLogicalDevice(), m_model->getVertexBufferMemory(), nullptr);
 		vkDestroyDevice(m_devices.getLogicalDevice(), nullptr);
 		if (m_validLayers.enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(m_vkInstance.getInstance(), m_validLayers.m_debugMessenger, nullptr);
@@ -141,13 +144,8 @@ namespace AE {
 			vkCmdSetScissor(m_commandBuffers[i], 0, 1, &m_pipelineConfig.scissor);
 
 			m_GraphicsPipeline->bind(m_commandBuffers[i]);
-
-			// vkCmdDraw(m_commandBuffers[i], vertexCount, instanceCount, firstVertex, firstInstance);
-			// vertexCount: Even though we don't have a vertex buffer, we technically still have 3 vertices to draw.
-			// instanceCount: Used for instanced rendering, use 1 if you're not doing that.
-			// firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
-			// firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
-			vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+			m_model->bind(m_commandBuffers[i]);
+			m_model->draw(m_commandBuffers[i]);
 
 			vkCmdEndRenderPass(m_commandBuffers[i]);
 			if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS) {
@@ -169,6 +167,22 @@ namespace AE {
 		if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
+	}
+
+	void Application::loadModels() {
+		/*std::vector<Model::Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		};*/
+		std::vector<Model::Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		};
+
+		m_model = std::make_unique<Model>(m_devices);
+		m_model->createVertexBuffers(vertices);
 	}
 
 } // namespace AE

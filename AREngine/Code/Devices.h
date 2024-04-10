@@ -56,6 +56,13 @@ namespace AE {
 			VkDeviceMemory& imageMemory
 		);
 		void createCommandPool();
+		void createBuffer(
+			VkDeviceSize size,
+			VkBufferUsageFlags usage,
+			VkMemoryPropertyFlags properties,
+			VkBuffer& buffer,
+			VkDeviceMemory& bufferMemory
+		);
 
 		VkPhysicalDevice& getPhysicalDevice() { return m_physicalDevice; }
 		VkDevice& getLogicalDevice() { return m_device; }
