@@ -7,8 +7,9 @@ namespace AE {
 	class Devices;
 
 	struct PipelineConfigInfo {
-		VkViewport viewport;
-		VkRect2D scissor;
+		PipelineConfigInfo(const PipelineConfigInfo&) = delete;
+		PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+
 		VkPipelineViewportStateCreateInfo viewportInfo;
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
 		VkPipelineRasterizationStateCreateInfo rasterizationInfo;
@@ -29,10 +30,10 @@ namespace AE {
 		~GraphicsPipeline() {}
 		
 		GraphicsPipeline(const GraphicsPipeline&) = delete;
-		void operator=(const GraphicsPipeline&) = delete;
+		GraphicsPipeline& operator=(const GraphicsPipeline&) = delete;
 
 		void createGraphicsPipeline(const char* vertFilePath, const char* fragFilePath, const PipelineConfigInfo& configInfo);
-		static PipelineConfigInfo defaultPipelineConfig(uint32_t width, uint32_t height, PipelineConfigInfo& configInfo);
+		static void defaultPipelineConfig(PipelineConfigInfo& configInfo);
 		void bind(VkCommandBuffer commandBuffer);
 
 		VkPipeline& getGraphicsPipeline() { return m_graphicsPipeline; }

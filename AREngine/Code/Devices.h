@@ -37,7 +37,7 @@ namespace AE {
 
 		// Not copyable or movable
 		Devices(const Devices&) = delete;
-		void operator=(const Devices&) = delete;
+		Devices& operator=(const Devices&) = delete;
 		Devices(Devices&&) = delete;
 		Devices& operator=(Devices&&) = delete;
 

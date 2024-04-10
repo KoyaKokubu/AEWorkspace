@@ -23,7 +23,7 @@ namespace AE {
 
 		// Not copyable or movable
 		Application(const Application&) = delete;
-		void operator=(const Application&) = delete;
+		Application& operator=(const Application&) = delete;
 		Application(Application&&) = delete;
 		Application& operator=(Application&&) = delete;
 		
@@ -41,7 +41,10 @@ namespace AE {
 		void createPipelineLayout();
 		void createGraphicsPipeline();
 		void createCommandBuffers();
-		void recordCommandBuffers();
+		void recordCommandBuffer(int imageIndex);
+		void freeCommandBuffers();
+		void cleanupSwapChain();
+		void recreateSwapChain();
 		void drawFrame();
 
 		void loadModels();
@@ -55,9 +58,8 @@ namespace AE {
 		ValidationLayers m_validLayers;
 		VulkanInstance m_vkInstance{ m_appName, m_validLayers };
 		Devices m_devices{ m_validLayers };
-		SwapChain m_swapChain{ m_devices };
+		std::unique_ptr<SwapChain> m_swapChain;
 		VkPipelineLayout m_pipelineLayout;
-		PipelineConfigInfo m_pipelineConfig;
 		std::unique_ptr<GraphicsPipeline> m_GraphicsPipeline;
 		std::vector<VkCommandBuffer> m_commandBuffers;
 		std::unique_ptr<Model> m_model;

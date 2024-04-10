@@ -9,15 +9,26 @@
 #include "WinApplication.h"
 
 namespace AE {
+	
+	SwapChain::SwapChain(Devices& devices, std::shared_ptr<SwapChain> previous)
+		: m_devices{ devices }
+		, m_oldSwapChain{ previous }
+	{
+		m_oldSwapChain = nullptr;
+	}
 
 	VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
 		for (const auto& availableFormat : availableFormats) {
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+#ifdef ADD_DEBUG
 				printf("Present mode: Mailbox\n");
+#endif
 				return availableFormat;
 			}
 		}
+#ifdef ADD_DEBUG
 		printf("Present mode: V-Sync\n");
+#endif
 		return availableFormats[0];
 	}
 
@@ -106,7 +117,7 @@ namespace AE {
 		createInfo.clipped = VK_TRUE;
 
 		// With Vulkan it's possible that your swap chain becomes invalid or unoptimized while your SwapChain is running, for example because the window was resized. In that case the swap chain actually needs to be recreated from scratch and a reference to the old one must be specified in this field.
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
+		createInfo.oldSwapchain = m_oldSwapChain == nullptr ? VK_NULL_HANDLE : m_oldSwapChain->m_swapChain;
 
 		if (vkCreateSwapchainKHR(m_devices.getLogicalDevice(), &createInfo, nullptr, &m_swapChain) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create swap chain!");

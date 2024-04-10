@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "Utils/AREngineIncludes.h"
 
 namespace AE {
@@ -9,11 +11,12 @@ namespace AE {
 
 	class SwapChain {
 	public:
-		SwapChain(AE::Devices& devices) : m_devices{ devices } {}
+		SwapChain(Devices& devices) : m_devices{ devices } {}
+		SwapChain(Devices& devices, std::shared_ptr<SwapChain> previous);
 
 		// Not copyable or movable
 		SwapChain(const SwapChain&) = delete;
-		void operator=(const SwapChain&) = delete;
+		SwapChain& operator=(const SwapChain&) = delete;
 		SwapChain(SwapChain&&) = delete;
 		SwapChain& operator=(SwapChain&&) = delete;
 		
@@ -58,6 +61,7 @@ namespace AE {
 
 		Devices& m_devices;
 		VkSwapchainKHR m_swapChain;
+		std::shared_ptr<SwapChain> m_oldSwapChain;
 		std::vector<VkImage> m_swapChainImages;
 		VkFormat m_swapChainImageFormat;
 		VkExtent2D m_swapChainExtent;
