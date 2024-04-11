@@ -2,9 +2,19 @@
 #include <map>
 #include <array>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include "Application.h"
 
 namespace AE {
+
+	// must match the order specified in shaders
+	struct SimplePushConstantData {
+		glm::vec2 offset;
+		alignas(16) glm::vec3 color; // GPU memory alignment requirement
+	};
 
 	void Application::run() {
 		initVulkan();
@@ -53,12 +63,17 @@ namespace AE {
 	// "uniform" values in shaders, which are globals similar to dynamic state variables that can be changed at drawing time to alter the behavior of your shaders without having to recreate them. They are commonly used to pass the 
 	// (ex) transformation matrix, texture samplers
 	void Application::createPipelineLayout() {
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(SimplePushConstantData);
+
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
-		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+		pipelineLayoutInfo.pSetLayouts = nullptr; // 
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		if (vkCreatePipelineLayout(m_devices.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
@@ -95,6 +110,9 @@ namespace AE {
 	}
 
 	void Application::recordCommandBuffer(int imageIndex) {
+		static int frame = 30;
+		frame = (frame + 1) % 100;
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0; // Optional
@@ -131,7 +149,22 @@ namespace AE {
 
 		m_GraphicsPipeline->bind(m_commandBuffers[imageIndex]);
 		m_model->bind(m_commandBuffers[imageIndex]);
-		m_model->draw(m_commandBuffers[imageIndex]);
+
+		for (int j = 0; j < 4; j++) {
+			SimplePushConstantData push{};
+			push.offset = { -0.5f + frame * 0.02f, -0.4f + j * 0.25f };
+			push.color = { 0.0f, 0.0f, 0.2f + 0.2f * j };
+
+			vkCmdPushConstants(
+				m_commandBuffers[imageIndex],
+				m_pipelineLayout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(SimplePushConstantData),
+				&push
+			);
+			m_model->draw(m_commandBuffers[imageIndex]); // write a draw call in the command buuffer
+		}
 
 		vkCmdEndRenderPass(m_commandBuffers[imageIndex]);
 		if (vkEndCommandBuffer(m_commandBuffers[imageIndex]) != VK_SUCCESS) {
@@ -147,22 +180,6 @@ namespace AE {
 			m_commandBuffers.data()
 		);
 		m_commandBuffers.clear();
-	}
-
-	void Application::loadModels() {
-		/*std::vector<Model::Vertex> vertices = {
-			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-		};*/
-		std::vector<Model::Vertex> vertices = {
-			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-		};
-
-		m_model = std::make_unique<Model>(m_devices);
-		m_model->createVertexBuffers(vertices);
 	}
 
 	void Application::recreateSwapChain() {
@@ -222,6 +239,22 @@ namespace AE {
 			vkDestroyImageView(m_devices.getLogicalDevice(), imageView, nullptr);
 		}
 		vkDestroySwapchainKHR(m_devices.getLogicalDevice(), m_swapChain->getSwapChain(), nullptr);
+	}
+
+	void Application::loadModels() {
+		/*std::vector<Model::Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		};*/
+		std::vector<Model::Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+		};
+
+		m_model = std::make_unique<Model>(m_devices);
+		m_model->createVertexBuffers(vertices);
 	}
 
 	// all of the operations in drawFrame are asynchronous. 

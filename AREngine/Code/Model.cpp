@@ -5,30 +5,43 @@
 
 namespace AE {
 
-    Model::Model(Devices& devices) : m_devices{ devices } {
-    }
-
     void Model::createVertexBuffers(const std::vector<Vertex>& vertices) {
         m_vertexCount = static_cast<uint32_t>(vertices.size());
         assert(m_vertexCount >= 3 && "Vertex count must be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0]) * m_vertexCount;
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
         m_devices.createBuffer(
-            bufferSize,
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            m_vertexBuffer,
-            m_vertexBufferMemory
+            bufferSize, 
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+            stagingBuffer, 
+            stagingBufferMemory
         );
 
         void* data;
         // create a region of host(cpu) memory mapped to device memory and set data to point to the beginning of the mapped memory range
         // m_vertexBufferMemory: device memory
         // data: host memory
-        vkMapMemory(m_devices.getLogicalDevice(), m_vertexBufferMemory, 0, bufferSize, 0, &data);
+        vkMapMemory(m_devices.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
         // As we specified VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, data will automatically be flushed to update device memory after memcpy
         // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT uses memory heap.
         memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-        vkUnmapMemory(m_devices.getLogicalDevice(), m_vertexBufferMemory);
+        vkUnmapMemory(m_devices.getLogicalDevice(), stagingBufferMemory);
+
+        m_devices.createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            m_vertexBuffer,
+            m_vertexBufferMemory
+        );
+
+        m_devices.copyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
+
+        vkDestroyBuffer(m_devices.getLogicalDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(m_devices.getLogicalDevice(), stagingBufferMemory, nullptr);
     }
 
     void Model::draw(VkCommandBuffer commandBuffer) {

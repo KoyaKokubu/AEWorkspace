@@ -63,6 +63,9 @@ namespace AE {
 			VkBuffer& buffer,
 			VkDeviceMemory& bufferMemory
 		);
+		void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		VkCommandBuffer beginSingleTimeCommands();
+		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 		VkPhysicalDevice& getPhysicalDevice() { return m_physicalDevice; }
 		VkDevice& getLogicalDevice() { return m_device; }

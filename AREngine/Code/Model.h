@@ -21,7 +21,7 @@ namespace AE {
             static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
         };
 
-        Model(Devices& devices);
+        Model(Devices& devices) : m_devices{ devices } {};
 
         Model(const Model&) = delete;
         Model& operator=(const Model&) = delete;
