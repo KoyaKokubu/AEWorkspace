@@ -40,7 +40,7 @@ namespace AE {
         GameObject(GameObject&&) = default;
         GameObject& operator=(GameObject&&) = default;
 
-        u_id getId() { return m_id; }
+        u_id getId() const { return m_id; }
 
         std::shared_ptr<Model> m_model{};
         glm::vec3 m_color{};

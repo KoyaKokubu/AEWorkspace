@@ -10,9 +10,7 @@
 
 namespace AE {
 	
-	SwapChain::SwapChain(Devices& devices, std::shared_ptr<SwapChain> previous)
-		: m_devices{ devices }
-		, m_oldSwapChain{ previous }
+	SwapChain::SwapChain(Devices& devices, std::shared_ptr<SwapChain> previous) : m_devices{ devices }, m_oldSwapChain{ previous } 
 	{
 		m_oldSwapChain = nullptr;
 	}
@@ -163,6 +161,7 @@ namespace AE {
 
 	void SwapChain::createDepthResources() {
 		VkFormat depthFormat = findDepthFormat();
+		m_swapChainDepthFormat = depthFormat;
 
 		m_depthImages.resize(m_swapChainImages.size());
 		m_depthImageMemorys.resize(m_swapChainImages.size());
@@ -374,8 +373,7 @@ namespace AE {
 		vkResetFences(m_devices.getLogicalDevice(), 1, &m_inFlightFences[m_currentFrame]);
 
 		// The last parameter references an optional fence that will be signaled when the command buffers finish execution. This allows us to know when it is safe for the command buffer to be reused, thus we want to give it inFlightFence. Now on the next frame, the CPU will wait for this command buffer to finish executing before it records new commands into it.
-		if (vkQueueSubmit(m_devices.getGraphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) !=
-			VK_SUCCESS) {
+		if (vkQueueSubmit(m_devices.getGraphicsQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 

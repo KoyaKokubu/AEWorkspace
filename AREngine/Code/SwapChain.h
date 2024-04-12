@@ -31,9 +31,13 @@ namespace AE {
 		void createSyncObjects();
 
 		VkFormat findDepthFormat();
+		bool compareSwapFormats(const SwapChain& swapChain) const {
+			return swapChain.m_swapChainDepthFormat == m_swapChainDepthFormat
+				&& swapChain.m_swapChainImageFormat == m_swapChainImageFormat;
+		}
+
 		uint32_t width() { return m_swapChainExtent.width; }
 		uint32_t height() { return m_swapChainExtent.height; }
-
 		VkSwapchainKHR& getSwapChain() { return m_swapChain; }
 		VkExtent2D& getSwapChainExtent() { return m_swapChainExtent; }
 		std::vector<VkImageView>& getImageViews() { return m_swapChainImageViews;  }
@@ -64,6 +68,7 @@ namespace AE {
 		std::shared_ptr<SwapChain> m_oldSwapChain;
 		std::vector<VkImage> m_swapChainImages;
 		VkFormat m_swapChainImageFormat;
+		VkFormat m_swapChainDepthFormat;
 		VkExtent2D m_swapChainExtent;
 		std::vector<VkImageView> m_swapChainImageViews; // can be used as color targets
 		std::vector<VkImage> m_depthImages;
