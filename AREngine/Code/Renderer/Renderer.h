@@ -3,10 +3,10 @@
 #include <memory>
 #include <cassert>
 
-#include "Utils/AREngineDefines.h"
+#include "../Utils/AREngineDefines.h"
 
+#include "../Devices.h"
 #include "WinApplication.h"
-#include "Devices.h"
 #include "SwapChain.h"
 
 namespace AE {
@@ -23,6 +23,7 @@ namespace AE {
 
 		bool isFrameInProgress() const { return m_isFrameStarted; }
 		VkRenderPass getSwapChainRenderPass() const { return m_swapChain->getRenderPass(); }
+		float getAspectRatio() const { return m_swapChain->extentAspectRatio(); }
 		VkCommandBuffer getCurrentCommandBuffer() const {
 			assert(m_isFrameStarted && "Cannot get command buffer when frame not in progress");
 			return m_commandBuffers[m_currentFrameIndex];

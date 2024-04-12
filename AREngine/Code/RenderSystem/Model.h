@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "Devices.h"
+#include "../Devices.h"
 
 namespace AE {
 
@@ -14,7 +14,7 @@ namespace AE {
     class Model {
     public:
         struct Vertex {
-            glm::vec2 position;
+            glm::vec3 position;
             glm::vec3 color;
 
             static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
@@ -30,8 +30,8 @@ namespace AE {
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
-        VkBuffer& getVertexBuffer() { return m_vertexBuffer;  }
-        VkDeviceMemory& getVertexBufferMemory() { return m_vertexBufferMemory; }
+        const VkBuffer& getVertexBuffer() const { return m_vertexBuffer;  }
+        const VkDeviceMemory& getVertexBufferMemory() const { return m_vertexBufferMemory; }
 
     private:
         Devices& m_devices;

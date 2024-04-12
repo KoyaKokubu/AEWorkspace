@@ -36,9 +36,13 @@ namespace AE {
 		while (!m_winApp.shouldClose()) {
 			glfwPollEvents();
 
+			float aspect = m_renderer.getAspectRatio();
+			//m_camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
+			m_camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+
 			if (VkCommandBuffer commandBuffer = m_renderer.beginFrame()) {
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
-				m_simpleRenderSystem.renderGameObjects(commandBuffer, m_gameObjects);
+				m_simpleRenderSystem.renderGameObjects(commandBuffer, m_gameObjects, m_camera);
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
 			}
@@ -65,34 +69,71 @@ namespace AE {
 		glfwTerminate();
 	}
 
-	void Application::loadGameObjects() {
+	std::unique_ptr<Model> createCubeModel(Devices& devices, glm::vec3 offset) {
 		std::vector<Model::Vertex> vertices{
-			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}} 
-		};
-		std::shared_ptr<Model> model = std::make_shared<Model>(m_devices);
-		model->createVertexBuffers(vertices);
+			// left face (white)
+			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
+			{{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
+			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
+			{{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
+			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
 
-		// https://www.color-hex.com/color-palette/5361
-		std::vector<glm::vec3> colors{
-			{1.f, .7f, .73f},
-			{1.f, .87f, .73f},
-			{1.f, 1.f, .73f},
-			{.73f, 1.f, .8f},
-			{.73, .88f, 1.f}
+			// right face (yellow)
+			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+			{{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
+			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
+			{{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
+			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
+
+			// top face (orange, remember y axis points down)
+			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+			{{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+			{{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
+			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
+
+			// bottom face (red)
+			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+			{{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
+			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+			{{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
+			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
+
+			// nose face (blue)
+			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+			{{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+			{{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
+			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
+
+			// tail face (green)
+			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+			{{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
+			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+			{{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
+			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
 		};
-		for (glm::vec3& color : colors) {
-			color = glm::pow(color, glm::vec3{ 2.2f });
+		for (Model::Vertex& v : vertices) {
+			v.position += offset;
 		}
-		for (int i = 0; i < 40; i++) {
-			GameObject triangle = GameObject::createGameObject();
-			triangle.m_model = model;
-			triangle.m_transform2dMat.scale = glm::vec2(.5f) + i * 0.025f;
-			triangle.m_transform2dMat.rotation = i * glm::pi<float>() * .025f;
-			triangle.m_color = colors[i % colors.size()];
-			m_gameObjects.push_back(std::move(triangle));
-		}
+		std::unique_ptr<Model> model = std::make_unique<Model>(devices);
+		model->createVertexBuffers(vertices);
+		return model;
+	}
+
+	void Application::loadGameObjects() {
+		std::shared_ptr<Model> model = createCubeModel(m_devices, { 0.f, 0.f, 0.f });
+		GameObject cube = GameObject::createGameObject();
+		cube.m_model = model;
+		cube.m_transformMat.m_translation = { .0f, .0f, 2.5f };
+		cube.m_transformMat.m_scale = { .5f, .5f, .5f };
+		m_gameObjects.emplace_back(std::move(cube));
 	}
 
 } // namespace AE

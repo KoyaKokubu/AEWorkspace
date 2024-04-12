@@ -3,9 +3,9 @@
 #include <algorithm> // Necessary for std::clamp
 #include <array>
 
-#include "Utils/AREngineDefines.h"
+#include "../Utils/AREngineDefines.h"
+#include "../Devices.h"
 #include "SwapChain.h"
-#include "Devices.h"
 #include "WinApplication.h"
 
 namespace AE {

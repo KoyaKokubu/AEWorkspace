@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utils/AREngineIncludes.h"
+#include "../Utils/AREngineIncludes.h"
 
 namespace AE {
 
@@ -36,7 +36,7 @@ namespace AE {
 		static void defaultPipelineConfig(PipelineConfigInfo& configInfo);
 		void bind(VkCommandBuffer commandBuffer);
 
-		VkPipeline& getGraphicsPipeline() { return m_graphicsPipeline; }
+		const VkPipeline& getGraphicsPipeline() const { return m_graphicsPipeline; }
 
 	private:
 		static void compileShaderFiles(const char* systemFilePath);

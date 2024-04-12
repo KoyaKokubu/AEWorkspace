@@ -4,11 +4,12 @@
 #include <optional>
 #include <memory>
 
-#include "Utils/AREngineDefines.h"
+#include "../Utils/AREngineDefines.h"
 
-#include "Devices.h"
+#include "../Devices.h"
 #include "GraphicsPipeline.h"
 #include "GameObject.h"
+#include "Camera.h"
 
 namespace AE {
 
@@ -24,7 +25,7 @@ namespace AE {
 
 		void createPipelineLayout();
 		void createGraphicsPipeline(VkRenderPass renderPass);
-		void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects);
+		void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera);
 		void cleanupGraphicsPipeline();
 
 	private:

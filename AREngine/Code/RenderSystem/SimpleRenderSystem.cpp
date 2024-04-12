@@ -13,9 +13,8 @@ namespace AE {
 
 	// must match the order specified in shaders
 	struct SimplePushConstantData {
-		glm::mat2 transform{ 1.f }; // default: identity matrix
-		glm::vec2 offset;
-		alignas(16) glm::vec3 color; // GPU memory alignment requirement
+		glm::mat4 transform{ 1.f }; // default: identity matrix
+		alignas(16) glm::vec3 color; // alignas() : GPU memory alignment requirement
 	};
 
 	void SimpleRenderSystem::cleanupGraphicsPipeline() {
@@ -54,19 +53,23 @@ namespace AE {
 		m_graphicsPipeline->createGraphicsPipeline(VERT_SHADER_PATH, FRAG_SHADER_PATH, pipelineConfig);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects) {
+	void SimpleRenderSystem::renderGameObjects(
+		VkCommandBuffer commandBuffer, 
+		std::vector<GameObject>& gameObjects, 
+		const Camera& camera) 
+	{
 		int i = 0;
 		for (GameObject& obj : gameObjects) {
 			i += 1;
-			obj.m_transform2dMat.rotation = glm::mod<float>(obj.m_transform2dMat.rotation + 0.001f * i, 2.f * glm::pi<float>());
+			obj.m_transformMat.m_rotation.x = glm::mod(obj.m_transformMat.m_rotation.x + 0.005f, glm::two_pi<float>());
+			obj.m_transformMat.m_rotation.y = glm::mod(obj.m_transformMat.m_rotation.y + 0.01f, glm::two_pi<float>());
 		}
 
 		m_graphicsPipeline->bind(commandBuffer);
 		for (GameObject& obj : gameObjects) {
 			SimplePushConstantData push{};
-			push.offset = obj.m_transform2dMat.translation;
 			push.color = obj.m_color;
-			push.transform = obj.m_transform2dMat.mat2();
+			push.transform = camera.getProjection() * obj.m_transformMat.mat4();
 
 			vkCmdPushConstants(
 				commandBuffer,

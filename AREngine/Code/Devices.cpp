@@ -1,9 +1,9 @@
 #include <set>
 
 #include "Devices.h"
-#include "WinApplication.h"
+#include "Renderer/WinApplication.h"
 #include "Utils/ValidationLayers.h"
-#include "SwapChain.h"
+#include "Renderer/SwapChain.h"
 
 namespace AE {
 

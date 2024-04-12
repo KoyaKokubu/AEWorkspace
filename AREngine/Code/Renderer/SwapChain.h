@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "Utils/AREngineIncludes.h"
+#include "../Utils/AREngineIncludes.h"
 
 namespace AE {
 
@@ -35,21 +35,24 @@ namespace AE {
 			return swapChain.m_swapChainDepthFormat == m_swapChainDepthFormat
 				&& swapChain.m_swapChainImageFormat == m_swapChainImageFormat;
 		}
+		float extentAspectRatio() {
+			return static_cast<float>(m_swapChainExtent.width) / static_cast<float>(m_swapChainExtent.height);
+		}
 
 		uint32_t width() { return m_swapChainExtent.width; }
 		uint32_t height() { return m_swapChainExtent.height; }
-		VkSwapchainKHR& getSwapChain() { return m_swapChain; }
-		VkExtent2D& getSwapChainExtent() { return m_swapChainExtent; }
-		std::vector<VkImageView>& getImageViews() { return m_swapChainImageViews;  }
-		std::vector<VkImage>& getDepthImages() { return m_depthImages; }
-		std::vector<VkImageView>& getDepthImageViews() { return m_depthImageViews; }
-		std::vector<VkDeviceMemory>& getDepthImageMemorys() { return m_depthImageMemorys; }
-		std::vector<VkFramebuffer>& getFrameBuffers() { return m_framebuffers; }
-		VkRenderPass& getRenderPass() { return m_renderPass; }
-		std::vector<VkSemaphore>& getImageAvailableSemaphores() { return m_imageAvailableSemaphores; }
-		std::vector<VkSemaphore>& getRenderFinishedSemaphores() { return m_renderFinishedSemaphores; }
-		std::vector<VkFence>& getInFlightFences() { return m_inFlightFences; }
-		std::vector<VkFence>& getImagesInFlight() { return m_imagesInFlight; }
+		const VkSwapchainKHR& getSwapChain() const { return m_swapChain; }
+		const VkExtent2D& getSwapChainExtent() const { return m_swapChainExtent; }
+		const std::vector<VkImageView>& getImageViews() const { return m_swapChainImageViews;  }
+		const std::vector<VkImage>& getDepthImages() const { return m_depthImages; }
+		const std::vector<VkImageView>& getDepthImageViews() const { return m_depthImageViews; }
+		const std::vector<VkDeviceMemory>& getDepthImageMemorys() const { return m_depthImageMemorys; }
+		const std::vector<VkFramebuffer>& getFrameBuffers() const { return m_framebuffers; }
+		const VkRenderPass& getRenderPass() const { return m_renderPass; }
+		const std::vector<VkSemaphore>& getImageAvailableSemaphores() const { return m_imageAvailableSemaphores; }
+		const std::vector<VkSemaphore>& getRenderFinishedSemaphores() const { return m_renderFinishedSemaphores; }
+		const std::vector<VkFence>& getInFlightFences() const { return m_inFlightFences; }
+		const std::vector<VkFence>& getImagesInFlight() const { return m_imagesInFlight; }
 		size_t imageCount() { return m_swapChainImages.size(); }
 
 	private:

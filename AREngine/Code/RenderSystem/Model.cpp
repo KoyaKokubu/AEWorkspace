@@ -74,7 +74,7 @@ namespace AE {
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0; // corresponded to the location specified in the vertex shader
-        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset = offsetof(Vertex, position); // offset from the beginning of struct Vertex -> 0 byte
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;

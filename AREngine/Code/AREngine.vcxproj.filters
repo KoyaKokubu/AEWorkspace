@@ -20,7 +20,7 @@
     <None Include="Shaders\shader.vert.spv" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="WinApplication.h">
+    <ClInclude Include="Renderer\WinApplication.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Application.h">
@@ -35,10 +35,10 @@
     <ClInclude Include="Devices.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="SwapChain.h">
+    <ClInclude Include="Renderer\SwapChain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsPipeline.h">
+    <ClInclude Include="RenderSystem\GraphicsPipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils\AREngineDefines.h">
@@ -47,16 +47,19 @@
     <ClInclude Include="VulkanInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
+    <ClInclude Include="RenderSystem\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
+    <ClInclude Include="RenderSystem\GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="Renderer\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleRenderSystem.h">
+    <ClInclude Include="RenderSystem\SimpleRenderSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,7 +67,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WinApplication.cpp">
+    <ClCompile Include="Renderer\WinApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Application.cpp">
@@ -76,22 +79,25 @@
     <ClCompile Include="Devices.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SwapChain.cpp">
+    <ClCompile Include="Renderer\SwapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GraphicsPipeline.cpp">
+    <ClCompile Include="RenderSystem\GraphicsPipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VulkanInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
+    <ClCompile Include="RenderSystem\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="Renderer\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleRenderSystem.cpp">
+    <ClCompile Include="RenderSystem\SimpleRenderSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

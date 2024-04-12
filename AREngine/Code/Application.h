@@ -6,13 +6,11 @@
 
 #include "Utils/AREngineDefines.h"
 
-#include "WinApplication.h"
 #include "VulkanInstance.h"
 #include "Utils/ValidationLayers.h"
-#include "Devices.h"
-#include "Renderer.h"
-#include "SimpleRenderSystem.h"
-#include "GameObject.h"
+#include "Renderer/Renderer.h"
+#include "RenderSystem/SimpleRenderSystem.h"
+#include "RenderSystem/Camera.h"
 
 namespace AE {
 
@@ -52,6 +50,7 @@ namespace AE {
 		Renderer m_renderer{ m_winApp, m_devices };
 		SimpleRenderSystem m_simpleRenderSystem{ m_devices };
 		std::vector<GameObject> m_gameObjects;
+		Camera m_camera{};
 	};
 
 } // namespace AE

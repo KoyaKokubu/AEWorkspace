@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <cassert>
 
-#include "Utils/AREngineDefines.h"
+#include "../Utils/AREngineDefines.h"
+#include "../Devices.h"
 #include "GraphicsPipeline.h"
-#include "Devices.h"
 #include "Model.h"
 
 namespace AE {
