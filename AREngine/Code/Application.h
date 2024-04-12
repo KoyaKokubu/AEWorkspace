@@ -12,7 +12,7 @@
 #include "Devices.h"
 #include "SwapChain.h"
 #include "GraphicsPipeline.h"
-#include "Model.h"
+#include "GameObject.h"
 
 namespace AE {
 
@@ -47,7 +47,8 @@ namespace AE {
 		void recreateSwapChain();
 		void drawFrame();
 
-		void loadModels();
+		void loadGameObjects();
+		void renderGameObjects(VkCommandBuffer commandBuffer);
 
 		// systemFilePath : path to the system file which compiles shader files
 		const char* m_systemFilePath = SYSTEM_FILE_PATH;
@@ -60,9 +61,9 @@ namespace AE {
 		Devices m_devices{ m_validLayers };
 		std::unique_ptr<SwapChain> m_swapChain;
 		VkPipelineLayout m_pipelineLayout;
-		std::unique_ptr<GraphicsPipeline> m_GraphicsPipeline;
+		std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
 		std::vector<VkCommandBuffer> m_commandBuffers;
-		std::unique_ptr<Model> m_model;
+		std::vector<GameObject> m_gameObjects;
 	};
 
 } // namespace AE

@@ -153,7 +153,7 @@ namespace AE {
 			queueCreateInfo.queueFamilyIndex = queueFamily;
 			queueCreateInfo.queueCount = 1;
 			queueCreateInfo.pQueuePriorities = &queuePriority;
-			queueCreateInfos.push_back(queueCreateInfo);
+			queueCreateInfos.emplace_back(queueCreateInfo);
 		}
 
 		// These are the features that we queried support for with vkGetPhysicalDeviceFeatures in the previous chapter, like geometry shaders. Right now we don't need anything special, so we can simply define it and leave everything to VK_FALSE. We'll come back to this structure once we're about to start doing more interesting things with Vulkan.

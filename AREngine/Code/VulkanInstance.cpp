@@ -40,7 +40,7 @@ namespace AE {
 		requiredExtensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 		if (m_validLayers.enableValidationLayers) {
 			// VK_EXT_DEBUG_UTILS_EXTENSION_NAME macro is equal to the literal string "VK_EXT_debug_utils"
-			requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			requiredExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
 		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 		createInfo.enabledExtensionCount = (uint32_t)requiredExtensions.size();

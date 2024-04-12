@@ -29,7 +29,7 @@ namespace AE {
 		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 		if (enableValidationLayers) {
 			// VK_EXT_DEBUG_UTILS_EXTENSION_NAME macro is equal to the literal string "VK_EXT_debug_utils"
-			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
 		return extensions;
 	}

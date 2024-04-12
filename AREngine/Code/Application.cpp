@@ -5,6 +5,7 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include "Application.h"
 
@@ -12,6 +13,7 @@ namespace AE {
 
 	// must match the order specified in shaders
 	struct SimplePushConstantData {
+		glm::mat2 transform{1.f}; // default: identity matrix
 		glm::vec2 offset;
 		alignas(16) glm::vec3 color; // GPU memory alignment requirement
 	};
@@ -32,7 +34,7 @@ namespace AE {
 		createPipelineLayout();
 		recreateSwapChain();
 		m_devices.createCommandPool();
-		loadModels();
+		loadGameObjects();
 		createCommandBuffers();
 	}
 
@@ -48,8 +50,10 @@ namespace AE {
 		cleanupSwapChain();
 		vkDestroyCommandPool(m_devices.getLogicalDevice(), m_devices.getCommandPool(), nullptr);
 		vkDestroyPipelineLayout(m_devices.getLogicalDevice(), m_pipelineLayout, nullptr);
-		vkDestroyBuffer(m_devices.getLogicalDevice(), m_model->getVertexBuffer(), nullptr);
-		vkFreeMemory(m_devices.getLogicalDevice(), m_model->getVertexBufferMemory(), nullptr);
+		for (GameObject& obj : m_gameObjects) {
+			vkDestroyBuffer(m_devices.getLogicalDevice(), obj.m_model->getVertexBuffer(), nullptr);
+			vkFreeMemory(m_devices.getLogicalDevice(), obj.m_model->getVertexBufferMemory(), nullptr);
+		}
 		vkDestroyDevice(m_devices.getLogicalDevice(), nullptr);
 		if (m_validLayers.enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(m_vkInstance.getInstance(), m_validLayers.m_debugMessenger, nullptr);
@@ -88,8 +92,8 @@ namespace AE {
 		GraphicsPipeline::defaultPipelineConfig(pipelineConfig);
 		pipelineConfig.renderPass = m_swapChain->getRenderPass();
 		pipelineConfig.pipelineLayout = m_pipelineLayout;
-		m_GraphicsPipeline = std::make_unique<GraphicsPipeline>(m_devices, SYSTEM_FILE_PATH);
-		m_GraphicsPipeline->createGraphicsPipeline(VERT_SHADER_PATH, FRAG_SHADER_PATH, pipelineConfig);
+		m_graphicsPipeline = std::make_unique<GraphicsPipeline>(m_devices, SYSTEM_FILE_PATH);
+		m_graphicsPipeline->createGraphicsPipeline(VERT_SHADER_PATH, FRAG_SHADER_PATH, pipelineConfig);
 	}
 
 	void Application::createCommandBuffers() {
@@ -110,9 +114,6 @@ namespace AE {
 	}
 
 	void Application::recordCommandBuffer(int imageIndex) {
-		static int frame = 30;
-		frame = (frame + 1) % 100;
-
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0; // Optional
@@ -147,24 +148,7 @@ namespace AE {
 		vkCmdSetViewport(m_commandBuffers[imageIndex], 0, 1, &viewport);
 		vkCmdSetScissor(m_commandBuffers[imageIndex], 0, 1, &scissor);
 
-		m_GraphicsPipeline->bind(m_commandBuffers[imageIndex]);
-		m_model->bind(m_commandBuffers[imageIndex]);
-
-		for (int j = 0; j < 4; j++) {
-			SimplePushConstantData push{};
-			push.offset = { -0.5f + frame * 0.02f, -0.4f + j * 0.25f };
-			push.color = { 0.0f, 0.0f, 0.2f + 0.2f * j };
-
-			vkCmdPushConstants(
-				m_commandBuffers[imageIndex],
-				m_pipelineLayout,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0,
-				sizeof(SimplePushConstantData),
-				&push
-			);
-			m_model->draw(m_commandBuffers[imageIndex]); // write a draw call in the command buuffer
-		}
+		renderGameObjects(m_commandBuffers[imageIndex]);
 
 		vkCmdEndRenderPass(m_commandBuffers[imageIndex]);
 		if (vkEndCommandBuffer(m_commandBuffers[imageIndex]) != VK_SUCCESS) {
@@ -228,7 +212,7 @@ namespace AE {
 		for (auto framebuffer : m_swapChain->getFrameBuffers()) {
 			vkDestroyFramebuffer(m_devices.getLogicalDevice(), framebuffer, nullptr);
 		}
-		vkDestroyPipeline(m_devices.getLogicalDevice(), m_GraphicsPipeline->getGraphicsPipeline(), nullptr);
+		vkDestroyPipeline(m_devices.getLogicalDevice(), m_graphicsPipeline->getGraphicsPipeline(), nullptr);
 		vkDestroyRenderPass(m_devices.getLogicalDevice(), m_swapChain->getRenderPass(), nullptr);
 		for (int i = 0; i < m_swapChain->getDepthImages().size(); i++) {
 			vkDestroyImageView(m_devices.getLogicalDevice(), m_swapChain->getDepthImageViews()[i], nullptr);
@@ -241,20 +225,62 @@ namespace AE {
 		vkDestroySwapchainKHR(m_devices.getLogicalDevice(), m_swapChain->getSwapChain(), nullptr);
 	}
 
-	void Application::loadModels() {
-		/*std::vector<Model::Vertex> vertices = {
+	void Application::loadGameObjects() {
+		std::vector<Model::Vertex> vertices{
 			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-		};*/
-		std::vector<Model::Vertex> vertices = {
-			{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-			{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}} 
 		};
+		std::shared_ptr<Model> model = std::make_shared<Model>(m_devices);
+		model->createVertexBuffers(vertices);
 
-		m_model = std::make_unique<Model>(m_devices);
-		m_model->createVertexBuffers(vertices);
+		// https://www.color-hex.com/color-palette/5361
+		std::vector<glm::vec3> colors{
+			{1.f, .7f, .73f},
+			{1.f, .87f, .73f},
+			{1.f, 1.f, .73f},
+			{.73f, 1.f, .8f},
+			{.73, .88f, 1.f}
+		};
+		for (glm::vec3& color : colors) {
+			color = glm::pow(color, glm::vec3{ 2.2f });
+		}
+		for (int i = 0; i < 40; i++) {
+			auto triangle = GameObject::createGameObject();
+			triangle.m_model = model;
+			triangle.m_transform2dMat.scale = glm::vec2(.5f) + i * 0.025f;
+			triangle.m_transform2dMat.rotation = i * glm::pi<float>() * .025f;
+			triangle.m_color = colors[i % colors.size()];
+			m_gameObjects.push_back(std::move(triangle));
+		}
+	}
+
+	void Application::renderGameObjects(VkCommandBuffer commandBuffer) {
+		int i = 0;
+		for (GameObject& obj : m_gameObjects) {
+			i += 1;
+			obj.m_transform2dMat.rotation = glm::mod<float>(obj.m_transform2dMat.rotation + 0.001f * i, 2.f * glm::pi<float>());
+		}
+
+		m_graphicsPipeline->bind(commandBuffer);
+		for (GameObject& obj : m_gameObjects) {
+			SimplePushConstantData push{};
+			push.offset = obj.m_transform2dMat.translation;
+			push.color = obj.m_color;
+			push.transform = obj.m_transform2dMat.mat2();
+
+			vkCmdPushConstants(
+				commandBuffer,
+				m_pipelineLayout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(SimplePushConstantData),
+				&push
+			);
+
+			obj.m_model->bind(commandBuffer);
+			obj.m_model->draw(commandBuffer);
+		}
 	}
 
 	// all of the operations in drawFrame are asynchronous. 
