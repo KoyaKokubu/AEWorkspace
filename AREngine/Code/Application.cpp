@@ -33,6 +33,8 @@ namespace AE {
 	}
 
 	void Application::mainLoop() {
+		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
+		m_camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f)); // second parameter : cube position
 		while (!m_winApp.shouldClose()) {
 			glfwPollEvents();
 

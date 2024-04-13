@@ -58,18 +58,15 @@ namespace AE {
 		std::vector<GameObject>& gameObjects, 
 		const Camera& camera) 
 	{
-		int i = 0;
+		m_graphicsPipeline->bind(commandBuffer);
+		glm::mat4 projectionView = camera.getProjection() * camera.getView();
 		for (GameObject& obj : gameObjects) {
-			i += 1;
 			obj.m_transformMat.m_rotation.x = glm::mod(obj.m_transformMat.m_rotation.x + 0.005f, glm::two_pi<float>());
 			obj.m_transformMat.m_rotation.y = glm::mod(obj.m_transformMat.m_rotation.y + 0.01f, glm::two_pi<float>());
-		}
 
-		m_graphicsPipeline->bind(commandBuffer);
-		for (GameObject& obj : gameObjects) {
 			SimplePushConstantData push{};
 			push.color = obj.m_color;
-			push.transform = camera.getProjection() * obj.m_transformMat.mat4();
+			push.transform = projectionView * obj.m_transformMat.mat4();
 
 			vkCmdPushConstants(
 				commandBuffer,
