@@ -17,23 +17,38 @@ namespace AE {
             static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
         };
 
+        struct Builder {
+            std::vector<Vertex> m_vertices{};
+            std::vector<uint32_t> m_indices{};
+        };
+
         Model(Devices& devices) : m_devices{ devices } {};
 
         Model(const Model&) = delete;
         Model& operator=(const Model&) = delete;
 
         void createVertexBuffers(const std::vector<Vertex>& vertices);
+        void createIndexBuffers(const std::vector<uint32_t>& indices);
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
         const VkBuffer& getVertexBuffer() const { return m_vertexBuffer;  }
         const VkDeviceMemory& getVertexBufferMemory() const { return m_vertexBufferMemory; }
+        const VkBuffer& getIndexBuffer() const { return m_indexBuffer; }
+        const VkDeviceMemory& getIndexBufferMemory() const { return m_indexBufferMemory; }
+
+        bool m_hasIndexBuffer = false;
 
     private:
         Devices& m_devices;
+
         VkBuffer m_vertexBuffer;
         VkDeviceMemory m_vertexBufferMemory;
         uint32_t m_vertexCount;
+
+        VkBuffer m_indexBuffer;
+        VkDeviceMemory m_indexBufferMemory;
+        uint32_t m_indexCount;
     };
 
 }  // namespace AE

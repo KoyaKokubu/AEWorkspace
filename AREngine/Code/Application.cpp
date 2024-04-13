@@ -72,6 +72,10 @@ namespace AE {
 		for (GameObject& obj : m_gameObjects) {
 			vkDestroyBuffer(m_devices.getLogicalDevice(), obj.m_model->getVertexBuffer(), nullptr);
 			vkFreeMemory(m_devices.getLogicalDevice(), obj.m_model->getVertexBufferMemory(), nullptr);
+			if (obj.m_model->m_hasIndexBuffer) {
+				vkDestroyBuffer(m_devices.getLogicalDevice(), obj.m_model->getIndexBuffer(), nullptr);
+				vkFreeMemory(m_devices.getLogicalDevice(), obj.m_model->getIndexBufferMemory(), nullptr);
+			}
 			break;
 		}
 		vkDestroyDevice(m_devices.getLogicalDevice(), nullptr);
@@ -85,60 +89,54 @@ namespace AE {
 	}
 
 	std::unique_ptr<Model> createCubeModel(Devices& devices, glm::vec3 offset) {
-		std::vector<Model::Vertex> vertices{
+		Model::Builder modelBuilder{};
+		modelBuilder.m_vertices = {
 			// left face (white)
 			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
 			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
 			{{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
 			{{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
 
 			// right face (yellow)
 			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
 			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
 			{{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
 			{{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
 
 			// top face (orange, remember y axis points down)
 			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
 			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
 			{{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
 			{{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
 
 			// bottom face (red)
 			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
 			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
 			{{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
 			{{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
 
 			// nose face (blue)
 			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
 			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
 			{{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
 			{{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
 
 			// tail face (green)
 			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
 			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
 			{{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
 			{{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
 		};
-		for (Model::Vertex& v : vertices) {
+		for (auto& v : modelBuilder.m_vertices) {
 			v.position += offset;
 		}
+
+		modelBuilder.m_indices = { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+								12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
+
 		std::unique_ptr<Model> model = std::make_unique<Model>(devices);
-		model->createVertexBuffers(vertices);
+		model->createVertexBuffers(modelBuilder.m_vertices);
+		model->createIndexBuffers(modelBuilder.m_indices);
 		return model;
 	}
 

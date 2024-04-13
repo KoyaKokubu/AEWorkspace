@@ -44,13 +44,58 @@ namespace AE {
         vkFreeMemory(m_devices.getLogicalDevice(), stagingBufferMemory, nullptr);
     }
 
+    void Model::createIndexBuffers(const std::vector<uint32_t>& indices) {
+        m_indexCount = static_cast<uint32_t>(indices.size());
+        m_hasIndexBuffer = m_indexCount > 0;
+        if (!m_hasIndexBuffer) {
+            return; 
+        }
+
+        VkDeviceSize bufferSize = sizeof(indices[0]) * m_indexCount;
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        m_devices.createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            stagingBuffer,
+            stagingBufferMemory
+        );
+
+        void* data;
+        vkMapMemory(m_devices.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+        vkUnmapMemory(m_devices.getLogicalDevice(), stagingBufferMemory);
+
+        m_devices.createBuffer(
+            bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            m_indexBuffer,
+            m_indexBufferMemory
+        );
+
+        m_devices.copyBuffer(stagingBuffer, m_indexBuffer, bufferSize);
+
+        vkDestroyBuffer(m_devices.getLogicalDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(m_devices.getLogicalDevice(), stagingBufferMemory, nullptr);
+    }
+
+
     void Model::draw(VkCommandBuffer commandBuffer) {
-        // vkCmdDraw(m_commandBuffers[i], vertexCount, instanceCount, firstVertex, firstInstance);
-        // 2. vertexCount: Even though we don't have a vertex buffer, we technically still have 3 vertices to draw.
-        // 3. instanceCount: Used for instanced rendering, use 1 if you're not doing that.
-        // 4. firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
-        // 5. firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
-        vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
+        if (m_hasIndexBuffer) {
+            // Parameters: (commandbuffer, indexCount, instanceCount, firstVertex, vertex offset, firstInstance)
+            vkCmdDrawIndexed(commandBuffer, m_indexCount, 1, 0, 0, 0);
+        }
+        else {
+            // vkCmdDraw(m_commandBuffers[i], vertexCount, instanceCount, firstVertex, firstInstance);
+            // 2. vertexCount: Even though we don't have a vertex buffer, we technically still have 3 vertices to draw.
+            // 3. instanceCount: Used for instanced rendering, use 1 if you're not doing that.
+            // 4. firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
+            // 5. firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
+            vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
+        }
     }
 
     // Record to command buffer to bind one vertex buffer starting at binding zero
@@ -59,6 +104,11 @@ namespace AE {
         VkBuffer buffers[] = { m_vertexBuffer };
         VkDeviceSize offsets[] = { 0 }; // offset in bindings
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+
+        if (m_hasIndexBuffer) {
+            // Third parameter: initial offset
+            vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        }
     }
 
     // binding(s) corresponded to a single vertex buffer
