@@ -11,6 +11,7 @@
 #include "Renderer/Renderer.h"
 #include "RenderSystem/SimpleRenderSystem.h"
 #include "RenderSystem/Camera.h"
+#include "Input/KeyboardMovementController.h"
 
 namespace AE {
 
@@ -51,6 +52,7 @@ namespace AE {
 		SimpleRenderSystem m_simpleRenderSystem{ m_devices };
 		std::vector<GameObject> m_gameObjects;
 		Camera m_camera{};
+		KeyboardMovementController m_cameraController{};
 	};
 
 } // namespace AE

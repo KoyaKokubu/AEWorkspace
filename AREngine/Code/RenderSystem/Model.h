@@ -1,10 +1,6 @@
 #pragma once
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE // expect depth buffer values to range from 0 to 1
-#include <glm/glm.hpp>
-#include <vector>
-
+#include "../Utils/AREngineIncludes.h"
 #include "../Devices.h"
 
 namespace AE {

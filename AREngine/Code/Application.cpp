@@ -1,11 +1,7 @@
 #include <cassert>
 #include <map>
 #include <array>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
+#include <chrono> // current system time with high precision
 
 #include "Application.h"
 
@@ -35,8 +31,25 @@ namespace AE {
 	void Application::mainLoop() {
 		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
 		m_camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f)); // second parameter : cube position
+
+		GameObject viewerObject = GameObject::createGameObject();
+
+		std::chrono::steady_clock::time_point beginTime = std::chrono::high_resolution_clock::now();
+		std::chrono::steady_clock::time_point prevTime = std::chrono::high_resolution_clock::now();
+
 		while (!m_winApp.shouldClose()) {
 			glfwPollEvents();
+
+			std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - prevTime).count();
+			prevTime = currentTime;
+
+			m_cameraController.moveInPlaneXZ(m_winApp.getWindowPointer(), frameTime, viewerObject);
+			m_camera.setViewYXZ(viewerObject.m_transformMat.m_translation, viewerObject.m_transformMat.m_rotation);
+			float passTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - beginTime).count();
+			/*if (int(passTime) % 10000 == 0) {
+				printf("m_translation: %d, %d, %d\n", viewerObject.m_transformMat.m_translation.x, viewerObject.m_transformMat.m_translation.y, viewerObject.m_transformMat.m_translation.z);
+			}*/
 
 			float aspect = m_renderer.getAspectRatio();
 			//m_camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);

@@ -172,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Input\KeyboardMovementController.h" />
     <ClInclude Include="RenderSystem\Camera.h" />
     <ClInclude Include="RenderSystem\GameObject.h" />
     <ClInclude Include="RenderSystem\Model.h" />
@@ -188,6 +189,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Input\KeyboardMovementController.cpp" />
     <ClCompile Include="RenderSystem\Camera.cpp" />
     <ClCompile Include="Devices.cpp" />
     <ClCompile Include="main.cpp" />

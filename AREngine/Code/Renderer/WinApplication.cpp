@@ -19,10 +19,6 @@ namespace AE {
 		glfwSetFramebufferSizeCallback(m_pWin, framebufferResizeCallback);
 	}
 
-	GLFWwindow* WinApplication::getWindowPointer() {
-		return m_pWin;
-	}
-
 	void WinApplication::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		WinApplication* winApp = reinterpret_cast<WinApplication*>(glfwGetWindowUserPointer(window));
 		winApp->m_framebufferResized = true;

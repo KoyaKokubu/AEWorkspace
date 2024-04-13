@@ -2,11 +2,7 @@
 #include <map>
 #include <array>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/gtc/constants.hpp>
-
+#include "../Utils/AREngineIncludes.h"
 #include "SimpleRenderSystem.h"
 
 namespace AE {
@@ -61,9 +57,6 @@ namespace AE {
 		m_graphicsPipeline->bind(commandBuffer);
 		glm::mat4 projectionView = camera.getProjection() * camera.getView();
 		for (GameObject& obj : gameObjects) {
-			obj.m_transformMat.m_rotation.x = glm::mod(obj.m_transformMat.m_rotation.x + 0.005f, glm::two_pi<float>());
-			obj.m_transformMat.m_rotation.y = glm::mod(obj.m_transformMat.m_rotation.y + 0.01f, glm::two_pi<float>());
-
 			SimplePushConstantData push{};
 			push.color = obj.m_color;
 			push.transform = projectionView * obj.m_transformMat.mat4();

@@ -18,7 +18,7 @@ namespace AE {
 		bool wasWindowResized() { return m_framebufferResized; }
 		void resetWindowResizedFlag() { m_framebufferResized = false; }
 
-		GLFWwindow* getWindowPointer();
+		GLFWwindow* getWindowPointer() const { return m_pWin; } ;
 
 	private:
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
