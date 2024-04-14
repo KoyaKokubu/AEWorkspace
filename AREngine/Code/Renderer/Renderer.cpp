@@ -148,7 +148,7 @@ namespace AE {
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = m_swapChain->getSwapChainExtent();
 		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f }; // index 0 : layout 0 as defined in render pass -> color buffer
+		clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f }; // index 0 : layout 0 as defined in render pass -> color buffer
 		clearValues[1].depthStencil = { 1.0f, 0 }; // index 1 : layout 1 as defined in render pass -> depth stencil buffer
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();

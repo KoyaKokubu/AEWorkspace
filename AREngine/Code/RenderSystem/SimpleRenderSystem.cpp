@@ -10,7 +10,7 @@ namespace AE {
 	// must match the order specified in shaders
 	struct SimplePushConstantData {
 		glm::mat4 transform{ 1.f }; // default: identity matrix
-		alignas(16) glm::vec3 color; // alignas() : GPU memory alignment requirement
+		glm::mat4 normalMatrix{ 1.f };
 	};
 
 	void SimpleRenderSystem::cleanupGraphicsPipeline() {
@@ -58,8 +58,9 @@ namespace AE {
 		glm::mat4 projectionView = camera.getProjection() * camera.getView();
 		for (GameObject& obj : gameObjects) {
 			SimplePushConstantData push{};
-			push.color = obj.m_color;
-			push.transform = projectionView * obj.m_transformMat.mat4();
+			glm::mat4 modelMatrix = obj.m_transformMat.mat4();
+			push.transform = projectionView * modelMatrix;
+			push.normalMatrix = obj.m_transformMat.normalMatrix();
 
 			vkCmdPushConstants(
 				commandBuffer,

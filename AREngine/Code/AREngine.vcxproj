@@ -195,6 +195,7 @@
     <ClCompile Include="RenderSystem\Camera.cpp" />
     <ClCompile Include="Devices.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RenderSystem\GameObject.cpp" />
     <ClCompile Include="RenderSystem\GraphicsPipeline.cpp" />
     <ClCompile Include="RenderSystem\Model.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />

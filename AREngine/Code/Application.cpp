@@ -76,7 +76,6 @@ namespace AE {
 				vkDestroyBuffer(m_devices.getLogicalDevice(), obj.m_model->getIndexBuffer(), nullptr);
 				vkFreeMemory(m_devices.getLogicalDevice(), obj.m_model->getIndexBufferMemory(), nullptr);
 			}
-			break;
 		}
 		vkDestroyDevice(m_devices.getLogicalDevice(), nullptr);
 		if (m_validLayers.enableValidationLayers) {
@@ -89,12 +88,19 @@ namespace AE {
 	}
 
 	void Application::loadGameObjects() {
-		std::shared_ptr<Model> model = Model::createModelFromFile(m_devices, MODEL_DIRECTORY_PATH);
-		GameObject gameObj = GameObject::createGameObject();
-		gameObj.m_model = model;
-		gameObj.m_transformMat.m_translation = { .0f, .0f, 2.5f };
-		gameObj.m_transformMat.m_scale = glm::vec3(3.f);
-		m_gameObjects.emplace_back(std::move(gameObj));
+		std::shared_ptr<Model> model = Model::createModelFromFile(m_devices, "Models/smooth_vase.obj");
+		GameObject smooth_vase = GameObject::createGameObject();
+		smooth_vase.m_model = model;
+		smooth_vase.m_transformMat.m_translation = { -.5f, .5f, 2.5f };
+		smooth_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
+		m_gameObjects.emplace_back(std::move(smooth_vase));
+
+		model = Model::createModelFromFile(m_devices, "Models/flat_vase.obj");
+		GameObject flat_vase = GameObject::createGameObject();
+		flat_vase.m_model = model;
+		flat_vase.m_transformMat.m_translation = { .5f, .5f, 2.5f };
+		flat_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
+		m_gameObjects.emplace_back(std::move(flat_vase));
 	}
 
 } // namespace AE

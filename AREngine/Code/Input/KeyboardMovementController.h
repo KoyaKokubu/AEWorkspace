@@ -23,7 +23,7 @@ namespace AE {
         void moveInPlaneXZ(GLFWwindow* window, float dt, GameObject& gameObject);
 
         KeyMappings m_keys{};
-        float m_moveSpeed{ 3.f };
+        float m_moveSpeed{ 1.5f };
         float m_turnSpeed{ 1.5f };
 	};
 
