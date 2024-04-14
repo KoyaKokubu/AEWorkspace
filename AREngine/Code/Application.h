@@ -28,7 +28,7 @@ namespace AE {
 		
 		static constexpr int WIDTH = 800;
 		static constexpr int HEIGHT = 600;
-		const char* m_appName = "Vulkan Application";
+		const char* m_appName = APPLICATION_NAME;
 
 		void run();
 

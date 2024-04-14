@@ -1,9 +1,37 @@
 #include <cassert>
 #include <cstring>
+#include <iostream>
+#include <unordered_map>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 #include "Model.h"
+#include "../Utils/AREngineDefines.h"
+#include "../Utils/utils.h"
+#include "../Input/tiny_obj_loader.h"
+
+namespace std {
+    template <>
+    struct hash<AE::Model::Vertex> {
+        size_t operator()(AE::Model::Vertex const& vertex) const {
+            size_t seed = 0;
+            AE::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+            return seed;
+        }
+    };
+}  // namespace std
 
 namespace AE {
+
+    std::unique_ptr<Model> Model::createModelFromFile(Devices& devices, const char* filePath) {
+        Builder builder{};
+        builder.loadModel(filePath);
+        //printf("Vertex count: %d\n", builder.m_vertices.size());
+        std::unique_ptr<Model> new_model = std::make_unique<Model>(devices);
+        new_model->createVertexBuffers(builder.m_vertices);
+        new_model->createIndexBuffers(builder.m_indices);
+        return new_model;
+    }
 
     void Model::createVertexBuffers(const std::vector<Vertex>& vertices) {
         m_vertexCount = static_cast<uint32_t>(vertices.size());
@@ -82,7 +110,6 @@ namespace AE {
         vkFreeMemory(m_devices.getLogicalDevice(), stagingBufferMemory, nullptr);
     }
 
-
     void Model::draw(VkCommandBuffer commandBuffer) {
         if (m_hasIndexBuffer) {
             // Parameters: (commandbuffer, indexCount, instanceCount, firstVertex, vertex offset, firstInstance)
@@ -131,6 +158,67 @@ namespace AE {
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = offsetof(Vertex, color); // offset from the beginning of struct Vertex -> 8 bytes
         return attributeDescriptions;
+    }
+
+    void Model::Builder::loadModel(const char* filePath) {
+        tinyobj::attrib_t attrib; // postition, color, normal, texture coordinate
+        std::vector<tinyobj::shape_t> shapes; // index values for each element
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filePath)) {
+            throw std::runtime_error(warn + err);
+        }
+
+        m_vertices.clear();
+        m_indices.clear();
+
+        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+        for (const tinyobj::shape_t& shape : shapes) {
+            for (const tinyobj::index_t& index : shape.mesh.indices) {
+                Vertex vertex{};
+
+                if (index.vertex_index >= 0) {
+                    vertex.position = {
+                        attrib.vertices[3 * index.vertex_index + 0],
+                        attrib.vertices[3 * index.vertex_index + 1],
+                        attrib.vertices[3 * index.vertex_index + 2],
+                    };
+                    auto colorIndex = 3 * index.vertex_index + 2;
+                    if (colorIndex < attrib.colors.size()) {
+                        vertex.color = {
+                            attrib.colors[colorIndex - 2],
+                            attrib.colors[colorIndex - 1],
+                            attrib.colors[colorIndex - 0],
+                        };
+                    }
+                    else {
+                        vertex.color = { 1.f, 1.f, 1.f };  // set default color
+                    }
+                }
+
+                if (index.normal_index >= 0) {
+                    vertex.normal = {
+                        attrib.normals[3 * index.normal_index + 0],
+                        attrib.normals[3 * index.normal_index + 1],
+                        attrib.normals[3 * index.normal_index + 2],
+                    };
+                }
+
+                if (index.texcoord_index >= 0) {
+                    vertex.uv = {
+                        attrib.texcoords[2 * index.texcoord_index + 0],
+                        attrib.texcoords[2 * index.texcoord_index + 1],
+                    };
+                }
+
+                if (uniqueVertices.count(vertex) == 0) {
+                    uniqueVertices[vertex] = static_cast<uint32_t>(m_vertices.size());
+                    m_vertices.emplace_back(vertex);
+                }
+                m_indices.emplace_back(uniqueVertices[vertex]);
+            }
+        }
     }
 
 }  // namespace AE

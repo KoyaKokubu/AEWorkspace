@@ -173,6 +173,7 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Input\KeyboardMovementController.h" />
+    <ClInclude Include="Input\tiny_obj_loader.h" />
     <ClInclude Include="RenderSystem\Camera.h" />
     <ClInclude Include="RenderSystem\GameObject.h" />
     <ClInclude Include="RenderSystem\Model.h" />
@@ -182,6 +183,7 @@
     <ClInclude Include="Devices.h" />
     <ClInclude Include="RenderSystem\GraphicsPipeline.h" />
     <ClInclude Include="Utils\AREngineDefines.h" />
+    <ClInclude Include="Utils\utils.h" />
     <ClInclude Include="VulkanInstance.h" />
     <ClInclude Include="Renderer\SwapChain.h" />
     <ClInclude Include="Utils\ValidationLayers.h" />
@@ -206,6 +208,32 @@
     <Text Include="Shaders\shader.vert" />
     <Text Include="Shaders\shader.frag" />
     <Text Include="Shaders\compile.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Models\colored_cube.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Models\cube.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Models\flat_vase.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Object>
+    <Object Include="Models\smooth_vase.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Object>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

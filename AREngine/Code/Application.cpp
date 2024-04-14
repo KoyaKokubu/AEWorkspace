@@ -88,65 +88,13 @@ namespace AE {
 		glfwTerminate();
 	}
 
-	std::unique_ptr<Model> createCubeModel(Devices& devices, glm::vec3 offset) {
-		Model::Builder modelBuilder{};
-		modelBuilder.m_vertices = {
-			// left face (white)
-			{{-.5f, -.5f, -.5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, -.5f, .5f}, {.9f, .9f, .9f}},
-			{{-.5f, .5f, -.5f}, {.9f, .9f, .9f}},
-
-			// right face (yellow)
-			{{.5f, -.5f, -.5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, -.5f, .5f}, {.8f, .8f, .1f}},
-			{{.5f, .5f, -.5f}, {.8f, .8f, .1f}},
-
-			// top face (orange, remember y axis points down)
-			{{-.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{-.5f, -.5f, .5f}, {.9f, .6f, .1f}},
-			{{.5f, -.5f, -.5f}, {.9f, .6f, .1f}},
-
-			// bottom face (red)
-			{{-.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{-.5f, .5f, .5f}, {.8f, .1f, .1f}},
-			{{.5f, .5f, -.5f}, {.8f, .1f, .1f}},
-
-			// nose face (blue)
-			{{-.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{-.5f, .5f, 0.5f}, {.1f, .1f, .8f}},
-			{{.5f, -.5f, 0.5f}, {.1f, .1f, .8f}},
-
-			// tail face (green)
-			{{-.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{-.5f, .5f, -0.5f}, {.1f, .8f, .1f}},
-			{{.5f, -.5f, -0.5f}, {.1f, .8f, .1f}},
-		};
-		for (auto& v : modelBuilder.m_vertices) {
-			v.position += offset;
-		}
-
-		modelBuilder.m_indices = { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-								12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
-
-		std::unique_ptr<Model> model = std::make_unique<Model>(devices);
-		model->createVertexBuffers(modelBuilder.m_vertices);
-		model->createIndexBuffers(modelBuilder.m_indices);
-		return model;
-	}
-
 	void Application::loadGameObjects() {
-		std::shared_ptr<Model> model = createCubeModel(m_devices, { 0.f, 0.f, 0.f });
-		GameObject cube = GameObject::createGameObject();
-		cube.m_model = model;
-		cube.m_transformMat.m_translation = { .0f, .0f, 2.5f };
-		cube.m_transformMat.m_scale = { .5f, .5f, .5f };
-		m_gameObjects.emplace_back(std::move(cube));
+		std::shared_ptr<Model> model = Model::createModelFromFile(m_devices, MODEL_DIRECTORY_PATH);
+		GameObject gameObj = GameObject::createGameObject();
+		gameObj.m_model = model;
+		gameObj.m_transformMat.m_translation = { .0f, .0f, 2.5f };
+		gameObj.m_transformMat.m_scale = glm::vec3(3.f);
+		m_gameObjects.emplace_back(std::move(gameObj));
 	}
 
 } // namespace AE

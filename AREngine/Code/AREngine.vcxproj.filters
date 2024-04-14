@@ -65,6 +65,12 @@
     <ClInclude Include="Input\KeyboardMovementController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Input\tiny_obj_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -111,5 +117,11 @@
     <Text Include="Shaders\shader.vert" />
     <Text Include="Shaders\shader.frag" />
     <Text Include="Shaders\compile.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Models\colored_cube.obj" />
+    <Object Include="Models\cube.obj" />
+    <Object Include="Models\flat_vase.obj" />
+    <Object Include="Models\smooth_vase.obj" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,7 @@
 #pragma once
 
+#define APPLICATION_NAME "Vulkan Application"
+
 #define WINDOWS_OS
 //#define ADD_DEBUG
 
@@ -14,3 +16,7 @@
 
 // max number of frames in flight
 #define MAX_FRAMES_IN_FLIGHT 2
+
+#define TINYOBJLOADER_IMPLEMENTATION
+
+#define MODEL_DIRECTORY_PATH "Models/smooth_vase.obj"
