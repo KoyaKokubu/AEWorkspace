@@ -7,9 +7,10 @@
 #include "../Utils/AREngineDefines.h"
 
 #include "../Devices.h"
+#include "../GameObject.h"
+#include "../Camera.h"
+#include "../FrameInfo.h"
 #include "GraphicsPipeline.h"
-#include "GameObject.h"
-#include "Camera.h"
 
 namespace AE {
 
@@ -23,9 +24,9 @@ namespace AE {
 		SimpleRenderSystem(SimpleRenderSystem&&) = delete;
 		SimpleRenderSystem& operator=(SimpleRenderSystem&&) = delete;
 
-		void createPipelineLayout();
+		void createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout);
 		void createGraphicsPipeline(VkRenderPass renderPass);
-		void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera);
+		void renderGameObjects(FrameInfo& frameInfo, std::vector<GameObject>& gameObjects);
 		void cleanupGraphicsPipeline();
 
 	private:

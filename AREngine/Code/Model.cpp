@@ -6,9 +6,9 @@
 #include <glm/gtx/hash.hpp>
 
 #include "Model.h"
-#include "../Utils/AREngineDefines.h"
-#include "../Utils/utils.h"
-#include "../Input/tiny_obj_loader.h"
+#include "Utils/AREngineDefines.h"
+#include "Utils/utils.h"
+#include "Input/tiny_obj_loader.h"
 
 namespace std {
     template <>
@@ -37,39 +37,30 @@ namespace AE {
         m_vertexCount = static_cast<uint32_t>(vertices.size());
         assert(m_vertexCount >= 3 && "Vertex count must be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0]) * m_vertexCount;
+        uint32_t vertexSize = sizeof(vertices[0]);
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        m_devices.createBuffer(
-            bufferSize, 
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-            stagingBuffer, 
-            stagingBufferMemory
-        );
+        Buffer stagingBuffer{
+            m_devices,
+            vertexSize,
+            m_vertexCount,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        };
 
-        void* data;
         // create a region of host(cpu) memory mapped to device memory and set data to point to the beginning of the mapped memory range
-        // m_vertexBufferMemory: device memory
-        // data: host memory
-        vkMapMemory(m_devices.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+        stagingBuffer.map();
         // As we specified VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, data will automatically be flushed to update device memory after memcpy
-        // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT uses memory heap.
-        memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-        vkUnmapMemory(m_devices.getLogicalDevice(), stagingBufferMemory);
+        stagingBuffer.writeToBuffer((void*)vertices.data());
 
-        m_devices.createBuffer(
-            bufferSize,
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            m_vertexBuffer,
-            m_vertexBufferMemory
+        m_vertexBuffer = std::make_unique<Buffer>(
+            m_devices,
+            vertexSize,
+            m_vertexCount,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
-        m_devices.copyBuffer(stagingBuffer, m_vertexBuffer, bufferSize);
-
-        vkDestroyBuffer(m_devices.getLogicalDevice(), stagingBuffer, nullptr);
-        vkFreeMemory(m_devices.getLogicalDevice(), stagingBufferMemory, nullptr);
+        m_devices.copyBuffer(stagingBuffer.getBuffer(), m_vertexBuffer->getBuffer(), bufferSize);
     }
 
     void Model::createIndexBuffers(const std::vector<uint32_t>& indices) {
@@ -80,34 +71,28 @@ namespace AE {
         }
 
         VkDeviceSize bufferSize = sizeof(indices[0]) * m_indexCount;
+        uint32_t indexSize = sizeof(indices[0]);
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        m_devices.createBuffer(
-            bufferSize,
+        Buffer stagingBuffer{
+            m_devices,
+            indexSize,
+            m_indexCount,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            stagingBuffer,
-            stagingBufferMemory
+        };
+
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void*)indices.data());
+
+        m_indexBuffer = std::make_unique<Buffer>(
+            m_devices,
+            indexSize,
+            m_indexCount,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 
-        void* data;
-        vkMapMemory(m_devices.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
-        vkUnmapMemory(m_devices.getLogicalDevice(), stagingBufferMemory);
-
-        m_devices.createBuffer(
-            bufferSize,
-            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            m_indexBuffer,
-            m_indexBufferMemory
-        );
-
-        m_devices.copyBuffer(stagingBuffer, m_indexBuffer, bufferSize);
-
-        vkDestroyBuffer(m_devices.getLogicalDevice(), stagingBuffer, nullptr);
-        vkFreeMemory(m_devices.getLogicalDevice(), stagingBufferMemory, nullptr);
+        m_devices.copyBuffer(stagingBuffer.getBuffer(), m_indexBuffer->getBuffer(), bufferSize);
     }
 
     void Model::draw(VkCommandBuffer commandBuffer) {
@@ -128,13 +113,13 @@ namespace AE {
     // Record to command buffer to bind one vertex buffer starting at binding zero
     void Model::bind(VkCommandBuffer commandBuffer) {
         // We can add multiple bindings by additional elements to the arrays below.
-        VkBuffer buffers[] = { m_vertexBuffer };
+        VkBuffer buffers[] = { m_vertexBuffer->getBuffer() };
         VkDeviceSize offsets[] = { 0 }; // offset in bindings
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
         if (m_hasIndexBuffer) {
             // Third parameter: initial offset
-            vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
         }
     }
 

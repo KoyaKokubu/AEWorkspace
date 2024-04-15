@@ -68,6 +68,7 @@ namespace AE {
 		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 		VkPhysicalDevice& getPhysicalDevice() { return m_physicalDevice; }
+		VkPhysicalDeviceProperties& getPhysicalDeviceProperties() { return m_properties; }
 		VkDevice& getLogicalDevice() { return m_device; }
 		VkSurfaceKHR& getSurface() { return m_surface; }
 		VkCommandPool& getCommandPool() { return m_commandPool; }
@@ -88,6 +89,7 @@ namespace AE {
 		ValidationLayers& m_validLayers;
 		// physical device
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+		VkPhysicalDeviceProperties m_properties;
 		// logical device: not directly interact with instances.
 		VkDevice m_device;
 		VkQueue m_graphicsQueue;

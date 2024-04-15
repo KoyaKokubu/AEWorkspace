@@ -10,8 +10,9 @@
 #include "Utils/ValidationLayers.h"
 #include "Renderer/Renderer.h"
 #include "RenderSystem/SimpleRenderSystem.h"
-#include "RenderSystem/Camera.h"
+#include "Camera.h"
 #include "Input/KeyboardMovementController.h"
+#include "Descriptors.h"
 
 namespace AE {
 
@@ -50,6 +51,8 @@ namespace AE {
 		Devices m_devices{ m_validLayers };
 		Renderer m_renderer{ m_winApp, m_devices };
 		SimpleRenderSystem m_simpleRenderSystem{ m_devices };
+		std::unique_ptr<DescriptorPool> m_globalPool{};
+		std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
 		std::vector<GameObject> m_gameObjects;
 		Camera m_camera{};
 		KeyboardMovementController m_cameraController{};

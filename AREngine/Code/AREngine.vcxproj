@@ -172,11 +172,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Descriptors.h" />
+    <ClInclude Include="FrameInfo.h" />
     <ClInclude Include="Input\KeyboardMovementController.h" />
     <ClInclude Include="Input\tiny_obj_loader.h" />
-    <ClInclude Include="RenderSystem\Camera.h" />
-    <ClInclude Include="RenderSystem\GameObject.h" />
-    <ClInclude Include="RenderSystem\Model.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="RenderSystem\SimpleRenderSystem.h" />
     <ClInclude Include="Utils\AREngineIncludes.h" />
@@ -191,13 +194,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
+    <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="Descriptors.cpp" />
     <ClCompile Include="Input\KeyboardMovementController.cpp" />
-    <ClCompile Include="RenderSystem\Camera.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Devices.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="RenderSystem\GameObject.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="RenderSystem\GraphicsPipeline.cpp" />
-    <ClCompile Include="RenderSystem\Model.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
     <ClCompile Include="RenderSystem\SimpleRenderSystem.cpp" />
     <ClCompile Include="Renderer\SwapChain.cpp" />

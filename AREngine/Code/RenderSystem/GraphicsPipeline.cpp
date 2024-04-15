@@ -5,8 +5,8 @@
 
 #include "../Utils/AREngineDefines.h"
 #include "../Devices.h"
+#include "../Model.h"
 #include "GraphicsPipeline.h"
-#include "Model.h"
 
 namespace AE {
 

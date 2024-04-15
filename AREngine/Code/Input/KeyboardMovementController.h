@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../RenderSystem/GameObject.h"
+#include "../GameObject.h"
 #include "../Renderer/WinApplication.h"
 
 namespace AE {

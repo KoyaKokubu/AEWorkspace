@@ -63,6 +63,7 @@ namespace AE {
 			throw std::runtime_error("failed to find a suitable GPU!");
 		}
 #endif
+		vkGetPhysicalDeviceProperties(m_physicalDevice, &m_properties);
 	}
 
 	bool Devices::isDeviceSuitable(VkPhysicalDevice device) {

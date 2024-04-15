@@ -2,8 +2,9 @@
 
 #include <memory>
 
-#include "../Utils/AREngineIncludes.h"
-#include "../Devices.h"
+#include "Utils/AREngineIncludes.h"
+#include "Devices.h"
+#include "Buffer.h"
 
 namespace AE {
 
@@ -44,22 +45,18 @@ namespace AE {
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
-        const VkBuffer& getVertexBuffer() const { return m_vertexBuffer;  }
-        const VkDeviceMemory& getVertexBufferMemory() const { return m_vertexBufferMemory; }
-        const VkBuffer& getIndexBuffer() const { return m_indexBuffer; }
-        const VkDeviceMemory& getIndexBufferMemory() const { return m_indexBufferMemory; }
+        const std::unique_ptr<Buffer>& getVertexBuffer() const { return m_vertexBuffer;  }
+        const std::unique_ptr<Buffer>& getIndexBuffer() const { return m_indexBuffer; }
 
         bool m_hasIndexBuffer = false;
 
     private:
         Devices& m_devices;
 
-        VkBuffer m_vertexBuffer;
-        VkDeviceMemory m_vertexBufferMemory;
+        std::unique_ptr<Buffer> m_vertexBuffer;
         uint32_t m_vertexCount;
 
-        VkBuffer m_indexBuffer;
-        VkDeviceMemory m_indexBufferMemory;
+        std::unique_ptr<Buffer> m_indexBuffer;
         uint32_t m_indexCount;
     };
 
