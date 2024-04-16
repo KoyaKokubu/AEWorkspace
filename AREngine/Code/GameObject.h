@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Model.h"
@@ -20,6 +21,7 @@ namespace AE {
 	class GameObject {
     public:
         using u_id = unsigned int;
+        using Map = std::unordered_map<u_id, GameObject>;
 
         static GameObject createGameObject() {
             static u_id currentId = 0;

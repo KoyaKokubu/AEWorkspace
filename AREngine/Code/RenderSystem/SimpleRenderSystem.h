@@ -26,7 +26,7 @@ namespace AE {
 
 		void createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout);
 		void createGraphicsPipeline(VkRenderPass renderPass);
-		void renderGameObjects(FrameInfo& frameInfo, std::vector<GameObject>& gameObjects);
+		void renderGameObjects(FrameInfo& frameInfo);
 		void cleanupGraphicsPipeline();
 
 	private:

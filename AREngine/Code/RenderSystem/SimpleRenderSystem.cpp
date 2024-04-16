@@ -52,9 +52,7 @@ namespace AE {
 		m_graphicsPipeline->createGraphicsPipeline(VERT_SHADER_PATH, FRAG_SHADER_PATH, pipelineConfig);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(
-		FrameInfo& frameInfo,
-		std::vector<GameObject>& gameObjects) 
+	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 	{
 		m_graphicsPipeline->bind(frameInfo.m_commandBuffer);
 
@@ -70,12 +68,17 @@ namespace AE {
 			   // existing sets would not be rebinded by setting the last index here. 
 			   // This is why frequently shared sets should occupy the earlier set numbers.
 			1, // descriptor set count
-			&frameInfo.globalDescriptorSet,
+			&frameInfo.m_globalDescriptorSet,
 			0, // can be used for specifying dynamic offsets
 			nullptr // can be used for specifying dynamic offsets
 		);
 
-		for (GameObject& obj : gameObjects) {
+		for (auto& kv : frameInfo.m_gameObjects) {
+			GameObject& obj = kv.second;
+			if (obj.m_model == nullptr) {
+				continue;
+			}
+
 			SimplePushConstantData push{};
 			push.modelMatrix = obj.m_transformMat.mat4();
 			push.normalMatrix = obj.m_transformMat.normalMatrix();

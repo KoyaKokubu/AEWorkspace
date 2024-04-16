@@ -18,8 +18,7 @@ namespace AE {
 
 	class Application {
 	public:
-		Application() {
-		}
+		Application() {}
 
 		// Not copyable or movable
 		Application(const Application&) = delete;
@@ -53,7 +52,7 @@ namespace AE {
 		SimpleRenderSystem m_simpleRenderSystem{ m_devices };
 		std::unique_ptr<DescriptorPool> m_globalPool{};
 		std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
-		std::vector<GameObject> m_gameObjects;
+		GameObject::Map m_gameObjects;
 		Camera m_camera{};
 		KeyboardMovementController m_cameraController{};
 	};

@@ -2,6 +2,7 @@
 
 #include "Utils/AREngineIncludes.h"
 #include "Camera.h"
+#include "GameObject.h"
 
 namespace AE {
 	struct FrameInfo {
@@ -9,6 +10,7 @@ namespace AE {
 		float m_frameTime;
 		VkCommandBuffer m_commandBuffer;
 		Camera& m_camera;
-		VkDescriptorSet globalDescriptorSet;
+		VkDescriptorSet m_globalDescriptorSet;
+		GameObject::Map& m_gameObjects;
 	};
 } // namespace AE

@@ -11,7 +11,9 @@ namespace AE {
 	// Global Uniform Buffer Object
 	struct GlobalUBO {
 		glm::mat4 projectionView{ 1.f };
-		glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, -3.f, -1.f });
+		glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, .02f }; // w is instensity
+		glm::vec3 lightPosition{ -1.f };
+		alignas(16) glm::vec4 lightColor{ 1.f }; // w is instensity
 	};
 
 	void Application::run() {
@@ -29,7 +31,7 @@ namespace AE {
 		m_devices.createLogicalDevice();
 		m_globalSetLayout =
 			DescriptorSetLayout::Builder(m_devices)
-			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
 			.build();
 		m_simpleRenderSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
 		m_renderer.recreateSwapChain();
@@ -69,6 +71,7 @@ namespace AE {
 		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
 		m_camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f)); // second parameter : cube position
 		GameObject viewerObject = GameObject::createGameObject();
+		viewerObject.m_transformMat.m_translation.z = -2.5f;
 
 		std::chrono::steady_clock::time_point beginTime = std::chrono::high_resolution_clock::now();
 		std::chrono::steady_clock::time_point prevTime = std::chrono::high_resolution_clock::now();
@@ -86,7 +89,7 @@ namespace AE {
 
 			float aspect = m_renderer.getAspectRatio();
 			//m_camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
-			m_camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+			m_camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
 
 			if (VkCommandBuffer commandBuffer = m_renderer.beginFrame()) {
 				int frameIndex = m_renderer.getFrameIndex();
@@ -95,7 +98,8 @@ namespace AE {
 					frameTime,
 					commandBuffer,
 					m_camera,
-					globalDescriptorSets[frameIndex]
+					globalDescriptorSets[frameIndex],
+					m_gameObjects
 				};
 
 				// update
@@ -106,7 +110,7 @@ namespace AE {
 
 				// render
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
-				m_simpleRenderSystem.renderGameObjects(frameinfo, m_gameObjects);
+				m_simpleRenderSystem.renderGameObjects(frameinfo);
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
 			}
@@ -135,16 +139,23 @@ namespace AE {
 		std::shared_ptr<Model> model = Model::createModelFromFile(m_devices, "Models/smooth_vase.obj");
 		GameObject smooth_vase = GameObject::createGameObject();
 		smooth_vase.m_model = model;
-		smooth_vase.m_transformMat.m_translation = { -.5f, .5f, 2.5f };
+		smooth_vase.m_transformMat.m_translation = { -.5f, .5f, 0.f };
 		smooth_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
-		m_gameObjects.emplace_back(std::move(smooth_vase));
+		m_gameObjects.emplace(smooth_vase.getId(), std::move(smooth_vase));
 
 		model = Model::createModelFromFile(m_devices, "Models/flat_vase.obj");
 		GameObject flat_vase = GameObject::createGameObject();
 		flat_vase.m_model = model;
-		flat_vase.m_transformMat.m_translation = { .5f, .5f, 2.5f };
+		flat_vase.m_transformMat.m_translation = { .5f, .5f, 0.f };
 		flat_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
-		m_gameObjects.emplace_back(std::move(flat_vase));
+		m_gameObjects.emplace(flat_vase.getId(), std::move(flat_vase));
+
+		model = Model::createModelFromFile(m_devices, "Models/quad.obj");
+		GameObject floor = GameObject::createGameObject();
+		floor.m_model = model;
+		floor.m_transformMat.m_translation = { 0.f, .5f, 0.f };
+		floor.m_transformMat.m_scale = { 3.f, 1.f, 3.f };
+		m_gameObjects.emplace(floor.getId(), std::move(floor));
 	}
 
 } // namespace AE

@@ -141,5 +141,6 @@
     <Object Include="Models\cube.obj" />
     <Object Include="Models\flat_vase.obj" />
     <Object Include="Models\smooth_vase.obj" />
+    <Object Include="Models\quad.obj" />
   </ItemGroup>
 </Project>
