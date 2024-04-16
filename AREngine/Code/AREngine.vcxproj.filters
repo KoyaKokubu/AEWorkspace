@@ -16,8 +16,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shaders\shader.frag.spv" />
-    <None Include="Shaders\shader.vert.spv" />
+    <None Include="Shaders\point_light.frag" />
+    <None Include="Shaders\point_light.vert" />
+    <None Include="Shaders\compile_point.bat">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer\WinApplication.h">
@@ -80,6 +83,9 @@
     <ClInclude Include="Descriptors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderSystem\PointLightSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -130,11 +136,14 @@
     <ClCompile Include="Descriptors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSystem\PointLightSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\shader.vert" />
-    <Text Include="Shaders\shader.frag" />
-    <Text Include="Shaders\compile.bat" />
+    <Text Include="Shaders\simple_shader.vert" />
+    <Text Include="Shaders\simple_shader.frag" />
+    <Text Include="Shaders\compile_simple.bat" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Models\colored_cube.obj" />

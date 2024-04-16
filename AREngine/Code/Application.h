@@ -10,6 +10,7 @@
 #include "Utils/ValidationLayers.h"
 #include "Renderer/Renderer.h"
 #include "RenderSystem/SimpleRenderSystem.h"
+#include "RenderSystem/PointLightSystem.h"
 #include "Camera.h"
 #include "Input/KeyboardMovementController.h"
 #include "Descriptors.h"
@@ -39,17 +40,13 @@ namespace AE {
 
 		void loadGameObjects();
 
-		// systemFilePath : path to the system file which compiles shader files
-		const char* m_systemFilePath = SYSTEM_FILE_PATH;
-		const char* m_vertFilePath = VERT_SHADER_PATH;
-		const char* m_fragFilePath = FRAG_SHADER_PATH;
-
 		WinApplication m_winApp{ WIDTH, HEIGHT, m_appName };
 		ValidationLayers m_validLayers;
 		VulkanInstance m_vkInstance{ m_appName, m_validLayers };
 		Devices m_devices{ m_validLayers };
 		Renderer m_renderer{ m_winApp, m_devices };
 		SimpleRenderSystem m_simpleRenderSystem{ m_devices };
+		PointLightSystem m_pointLightSystem{ m_devices };
 		std::unique_ptr<DescriptorPool> m_globalPool{};
 		std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
 		GameObject::Map m_gameObjects;

@@ -3,28 +3,28 @@
 #include <array>
 
 #include "../Utils/AREngineIncludes.h"
-#include "SimpleRenderSystem.h"
+#include "PointLightSystem.h"
 
 namespace AE {
 
-	// must match the order specified in shaders
-	struct SimplePushConstantData {
-		glm::mat4 modelMatrix{ 1.f }; // default: identity matrix
-		glm::mat4 normalMatrix{ 1.f };
+	struct PointLightPushConstants {
+		glm::vec4 position{};
+		glm::vec4 color{};
+		float radius;
 	};
 
-	void SimpleRenderSystem::cleanupGraphicsPipeline() {
+	void PointLightSystem::cleanupGraphicsPipeline() {
 		vkDestroyPipeline(m_devices.getLogicalDevice(), m_graphicsPipeline->getGraphicsPipeline(), nullptr);
 		vkDestroyPipelineLayout(m_devices.getLogicalDevice(), m_pipelineLayout, nullptr);
 	}
 
 	// "uniform" values in shaders, which are globals similar to dynamic state variables that can be changed at drawing time to alter the behavior of your shaders without having to recreate them. They are commonly used to pass the 
 	// (ex) transformation matrix, texture samplers
-	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
+	void PointLightSystem::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(SimplePushConstantData);
+		pushConstantRange.size = sizeof(PointLightPushConstants);
 
 		// index indicates set number
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalDescriptorSetLayout };
@@ -41,18 +41,43 @@ namespace AE {
 		}
 	}
 
-	void SimpleRenderSystem::createGraphicsPipeline(VkRenderPass renderPass) {
+	void PointLightSystem::createGraphicsPipeline(VkRenderPass renderPass) {
 		assert(m_pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
 		PipelineConfigInfo pipelineConfig{};
 		GraphicsPipeline::defaultPipelineConfig(pipelineConfig);
+		pipelineConfig.attributeDescriptions.clear();
+		pipelineConfig.bindingDescriptions.clear();
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = m_pipelineLayout;
-		m_graphicsPipeline = std::make_unique<GraphicsPipeline>(m_devices, SIMPLE_SHADER_COMPILER_PATH);
-		m_graphicsPipeline->createGraphicsPipeline(SIMPLE_VERT_SHADER_PATH, SIMPLE_FRAG_SHADER_PATH, pipelineConfig);
+		m_graphicsPipeline = std::make_unique<GraphicsPipeline>(m_devices, POINT_SHADER_COMPILER_PATH);
+		m_graphicsPipeline->createGraphicsPipeline(POINT_LIGHT_VERT_SHADER_PATH, POINT_LIGHT_FRAG_SHADER_PATH, pipelineConfig);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
+	void PointLightSystem::update(FrameInfo& frameInfo, GlobalUBO& ubo) {
+		glm::highp_mat4 rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.m_frameTime, { 0.f, -1.f, 0.f });
+		int lightIndex = 0;
+		for (auto& kv : frameInfo.m_gameObjects) {
+			GameObject& obj = kv.second;
+			if (obj.m_pointLight == nullptr) {
+				continue;
+			}
+
+			assert(lightIndex < MAX_LIGHTS && "Point lights exceed maximum specified");
+
+			// update light position
+			obj.m_transformMat.m_translation = glm::vec3(rotateLight * glm::vec4(obj.m_transformMat.m_translation, 1.f));
+
+			// copy light to ubo
+			ubo.pointLights[lightIndex].position = glm::vec4(obj.m_transformMat.m_translation, 1.f);
+			ubo.pointLights[lightIndex].color = glm::vec4(obj.m_color, obj.m_pointLight->m_lightIntensity);
+
+			lightIndex += 1;
+		}
+		ubo.numLights = lightIndex;
+	}
+
+	void PointLightSystem::render(FrameInfo& frameInfo)
 	{
 		m_graphicsPipeline->bind(frameInfo.m_commandBuffer);
 
@@ -74,26 +99,25 @@ namespace AE {
 		);
 
 		for (auto& kv : frameInfo.m_gameObjects) {
-			GameObject& obj = kv.second;
-			if (obj.m_model == nullptr) {
+			auto& obj = kv.second;
+			if (obj.m_pointLight == nullptr) {
 				continue;
 			}
 
-			SimplePushConstantData push{};
-			push.modelMatrix = obj.m_transformMat.mat4();
-			push.normalMatrix = obj.m_transformMat.normalMatrix();
+			PointLightPushConstants push{};
+			push.position = glm::vec4(obj.m_transformMat.m_translation, 1.f);
+			push.color = glm::vec4(obj.m_color, obj.m_pointLight->m_lightIntensity);
+			push.radius = obj.m_transformMat.m_scale.x;
 
 			vkCmdPushConstants(
 				frameInfo.m_commandBuffer,
 				m_pipelineLayout,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
-				sizeof(SimplePushConstantData),
+				sizeof(PointLightPushConstants),
 				&push
 			);
-
-			obj.m_model->bind(frameInfo.m_commandBuffer);
-			obj.m_model->draw(frameInfo.m_commandBuffer);
+			vkCmdDraw(frameInfo.m_commandBuffer, 6, 1, 0, 0);
 		}
 	}
 

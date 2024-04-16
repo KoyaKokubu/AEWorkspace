@@ -8,14 +8,6 @@
 
 namespace AE {
 
-	// Global Uniform Buffer Object
-	struct GlobalUBO {
-		glm::mat4 projectionView{ 1.f };
-		glm::vec4 ambientLightColor{ 1.f, 1.f, 1.f, .02f }; // w is instensity
-		glm::vec3 lightPosition{ -1.f };
-		alignas(16) glm::vec4 lightColor{ 1.f }; // w is instensity
-	};
-
 	void Application::run() {
 		initVulkan();
 		mainLoop();
@@ -34,8 +26,10 @@ namespace AE {
 			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
 			.build();
 		m_simpleRenderSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
+		m_pointLightSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
 		m_renderer.recreateSwapChain();
 		m_simpleRenderSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
+		m_pointLightSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
 		m_devices.createCommandPool();
 		m_globalPool = 
 			DescriptorPool::Builder(m_devices)
@@ -93,7 +87,7 @@ namespace AE {
 
 			if (VkCommandBuffer commandBuffer = m_renderer.beginFrame()) {
 				int frameIndex = m_renderer.getFrameIndex();
-				FrameInfo frameinfo{
+				FrameInfo frameInfo{
 					frameIndex,
 					frameTime,
 					commandBuffer,
@@ -104,13 +98,16 @@ namespace AE {
 
 				// update
 				GlobalUBO ubo{};
-				ubo.projectionView = m_camera.getProjection() * m_camera.getView();
+				ubo.projection = m_camera.getProjection();
+				ubo.view = m_camera.getView();
+				m_pointLightSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
 
 				// render
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
-				m_simpleRenderSystem.renderGameObjects(frameinfo);
+				m_simpleRenderSystem.renderGameObjects(frameInfo);
+				m_pointLightSystem.render(frameInfo);
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
 			}
@@ -121,6 +118,7 @@ namespace AE {
 	void Application::cleanup() {
 		m_renderer.cleanupSwapChain();
 		m_simpleRenderSystem.cleanupGraphicsPipeline();
+		m_pointLightSystem.cleanupGraphicsPipeline();
 		vkDestroyCommandPool(m_devices.getLogicalDevice(), m_devices.getCommandPool(), nullptr);
 		m_globalSetLayout = nullptr; // call destructor
 		m_globalPool = nullptr; // call destructor
@@ -156,6 +154,27 @@ namespace AE {
 		floor.m_transformMat.m_translation = { 0.f, .5f, 0.f };
 		floor.m_transformMat.m_scale = { 3.f, 1.f, 3.f };
 		m_gameObjects.emplace(floor.getId(), std::move(floor));
+
+		std::vector<glm::vec3> lightColors{
+			{1.f, .1f, .1f},
+			{.1f, .1f, 1.f},
+			{.1f, 1.f, .1f},
+			{1.f, 1.f, .1f},
+			{.1f, 1.f, 1.f},
+			{1.f, 1.f, 1.f}
+		};
+
+		for (int i = 0; i < lightColors.size(); i++) {
+			GameObject pointLight = GameObject::makePointLight(0.2f);
+			pointLight.m_color = lightColors[i];
+			glm::highp_mat4 rotateLight = glm::rotate(
+				glm::mat4(1.f),
+				(i * glm::two_pi<float>()) / lightColors.size(),
+				{0.f, -1.f, 0.f}
+			);
+			pointLight.m_transformMat.m_translation = glm::vec3(rotateLight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+			m_gameObjects.emplace(pointLight.getId(), std::move(pointLight));
+		}
 	}
 
 } // namespace AE

@@ -18,6 +18,10 @@ namespace AE {
         glm::mat4 normalMatrix();
     };
 	
+    struct PointLightCPU {
+        float m_lightIntensity = 1.0f;
+    };
+
 	class GameObject {
     public:
         using u_id = unsigned int;
@@ -27,6 +31,7 @@ namespace AE {
             static u_id currentId = 0;
             return GameObject{ currentId++ };
         }
+        static GameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
 
         GameObject(const GameObject&) = delete;
         GameObject& operator=(const GameObject&) = delete;
@@ -35,7 +40,9 @@ namespace AE {
 
         const u_id getId() const { return m_id; }
 
+        // Optional pointer components
         std::shared_ptr<Model> m_model{};
+        std::unique_ptr<PointLightCPU> m_pointLight = nullptr; // if a game object is not point light, set nullptr
         glm::vec3 m_color{};
         TransformMat m_transformMat{};
 
