@@ -7,6 +7,7 @@ namespace AE {
 	class Devices;
 
 	struct PipelineConfigInfo {
+		PipelineConfigInfo() = default;
 		PipelineConfigInfo(const PipelineConfigInfo&) = delete;
 		PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
@@ -36,6 +37,7 @@ namespace AE {
 
 		void createGraphicsPipeline(const char* vertFilePath, const char* fragFilePath, const PipelineConfigInfo& configInfo);
 		static void defaultPipelineConfig(PipelineConfigInfo& configInfo);
+		static void enableAlphaBlending(PipelineConfigInfo& configInfo);
 		void bind(VkCommandBuffer commandBuffer);
 
 		const VkPipeline& getGraphicsPipeline() const { return m_graphicsPipeline; }

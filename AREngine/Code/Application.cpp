@@ -107,8 +107,11 @@ namespace AE {
 
 				// render
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
+
+				// render solid objects first, then render any semi-transparent objects
 				m_simpleRenderSystem.renderGameObjects(frameInfo);
 				m_pointLightSystem.render(frameInfo);
+				
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
 			}

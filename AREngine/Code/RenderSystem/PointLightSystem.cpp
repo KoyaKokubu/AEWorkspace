@@ -46,6 +46,7 @@ namespace AE {
 
 		PipelineConfigInfo pipelineConfig{};
 		GraphicsPipeline::defaultPipelineConfig(pipelineConfig);
+		GraphicsPipeline::enableAlphaBlending(pipelineConfig);
 		pipelineConfig.attributeDescriptions.clear();
 		pipelineConfig.bindingDescriptions.clear();
 		pipelineConfig.renderPass = renderPass;
@@ -77,8 +78,21 @@ namespace AE {
 		ubo.numLights = lightIndex;
 	}
 
-	void PointLightSystem::render(FrameInfo& frameInfo)
-	{
+	void PointLightSystem::render(FrameInfo& frameInfo) {
+		// sort lights
+		std::map<float, GameObject::u_id> sorted;
+		for (auto& kv : frameInfo.m_gameObjects) {
+			auto& obj = kv.second;
+			if (obj.m_pointLight == nullptr) {
+				continue;
+			}
+
+			// calculate distance from light to camera
+			auto offset = frameInfo.m_camera.getPosition() - obj.m_transformMat.m_translation;
+			float disSquared = glm::dot(offset, offset);
+			sorted[disSquared] = obj.getId();
+		}
+
 		m_graphicsPipeline->bind(frameInfo.m_commandBuffer);
 
 		// Bind the descriptor set to the pipeline
@@ -98,11 +112,9 @@ namespace AE {
 			nullptr // can be used for specifying dynamic offsets
 		);
 
-		for (auto& kv : frameInfo.m_gameObjects) {
-			auto& obj = kv.second;
-			if (obj.m_pointLight == nullptr) {
-				continue;
-			}
+		// iterate through sorted lights in reverse order
+		for (auto it = sorted.rbegin(); it != sorted.rend(); ++it) {
+			auto& obj = frameInfo.m_gameObjects.at(it->second);
 
 			PointLightPushConstants push{};
 			push.position = glm::vec4(obj.m_transformMat.m_translation, 1.f);

@@ -1,5 +1,4 @@
 #include <cassert>
-#include <map>
 #include <array>
 
 #include "../Utils/AREngineIncludes.h"
@@ -52,8 +51,7 @@ namespace AE {
 		m_graphicsPipeline->createGraphicsPipeline(SIMPLE_VERT_SHADER_PATH, SIMPLE_FRAG_SHADER_PATH, pipelineConfig);
 	}
 
-	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
-	{
+	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo) {
 		m_graphicsPipeline->bind(frameInfo.m_commandBuffer);
 
 		// Bind the descriptor set to the pipeline

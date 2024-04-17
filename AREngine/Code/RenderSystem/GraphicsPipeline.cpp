@@ -202,6 +202,25 @@ namespace AE {
 		vkDestroyShaderModule(m_devices.getLogicalDevice(), m_vertShaderModule, nullptr);
 	}
 
+	void GraphicsPipeline::enableAlphaBlending(PipelineConfigInfo& configInfo) {
+		// Color blending
+		configInfo.colorBlendAttachment.blendEnable = VK_TRUE; // performance cost increase when VK_TRUE
+
+		configInfo.colorBlendAttachment.colorWriteMask =
+			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+			VK_COLOR_COMPONENT_A_BIT;
+
+		// src: the drawing fragment color
+		// dst: the existing fragment color in the attachment
+		// color.rgb = (src.a * src.rgb) + ((1 - src.a) * dst.rgb
+		configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		configInfo.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+		configInfo.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		configInfo.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+	}
+
 	void GraphicsPipeline::createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule) {
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
