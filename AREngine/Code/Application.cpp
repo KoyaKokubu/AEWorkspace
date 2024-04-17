@@ -100,6 +100,7 @@ namespace AE {
 				GlobalUBO ubo{};
 				ubo.projection = m_camera.getProjection();
 				ubo.view = m_camera.getView();
+				ubo.inverseView = m_camera.getInverseView();
 				m_pointLightSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
