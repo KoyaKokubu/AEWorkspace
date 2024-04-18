@@ -5,6 +5,7 @@
 #include "Utils/AREngineIncludes.h"
 #include "Devices.h"
 #include "Buffer.h"
+#include "Texture.h"
 
 namespace AE {
 
@@ -45,10 +46,11 @@ namespace AE {
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
 
-        const std::unique_ptr<Buffer>& getVertexBuffer() const { return m_vertexBuffer;  }
-        const std::unique_ptr<Buffer>& getIndexBuffer() const { return m_indexBuffer; }
+        void createTexture(const char* filePath);
 
         bool m_hasIndexBuffer = false;
+        bool m_hasTexture = false;
+        std::unique_ptr<Texture> m_texture;
 
     private:
         Devices& m_devices;

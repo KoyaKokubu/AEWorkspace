@@ -19,14 +19,15 @@ namespace AE {
 
 	// "uniform" values in shaders, which are globals similar to dynamic state variables that can be changed at drawing time to alter the behavior of your shaders without having to recreate them. They are commonly used to pass the 
 	// (ex) transformation matrix, texture samplers
-	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
+	void SimpleRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout> descriptorSetLayouts) {
+	//void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(SimplePushConstantData);
 
 		// index indicates set number
-		std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalDescriptorSetLayout };
+		//std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalDescriptorSetLayout };
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -65,8 +66,10 @@ namespace AE {
 			   // If we want to bind a new set and it can be added to the end,
 			   // existing sets would not be rebinded by setting the last index here. 
 			   // This is why frequently shared sets should occupy the earlier set numbers.
-			1, // descriptor set count
-			&frameInfo.m_globalDescriptorSet,
+			//1, // descriptor set count
+			//&frameInfo.m_globalDescriptorSet,
+			frameInfo.m_descriptorSets.size(), // descriptor set count
+			&frameInfo.m_descriptorSets[0],
 			0, // can be used for specifying dynamic offsets
 			nullptr // can be used for specifying dynamic offsets
 		);

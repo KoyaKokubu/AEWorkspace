@@ -27,7 +27,8 @@ namespace AE {
 		float m_frameTime;
 		VkCommandBuffer m_commandBuffer;
 		Camera& m_camera;
-		VkDescriptorSet m_globalDescriptorSet;
+		//VkDescriptorSet m_globalDescriptorSet;
+		std::vector<VkDescriptorSet> m_descriptorSets;
 		GameObject::Map& m_gameObjects;
 	};
 

@@ -5,6 +5,7 @@
 
 #include "Application.h"
 #include "Buffer.h"
+#include "Texture.h"
 
 namespace AE {
 
@@ -21,12 +22,30 @@ namespace AE {
 		m_devices.createSurface(m_vkInstance.getInstance(), m_winApp);
 		m_devices.pickPhysicalDevice(m_vkInstance.getInstance());
 		m_devices.createLogicalDevice();
-		m_globalSetLayout =
+		/*m_globalSetLayout =
 			DescriptorSetLayout::Builder(m_devices)
 			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
-			.build();
-		m_simpleRenderSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
-		m_pointLightSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
+			.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.build();*/
+		// global descriptor set layout
+		m_descriptorSetLayouts.emplace_back(
+			DescriptorSetLayout::Builder(m_devices)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
+			.build()
+		);
+		// texture descriptor set layout
+		m_descriptorSetLayouts.emplace_back(
+			DescriptorSetLayout::Builder(m_devices)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.build()
+		);
+		for (int i = 0; i < m_descriptorSetLayouts.size(); i++) {
+			m_VkDescriptorSetLayouts.emplace_back(m_descriptorSetLayouts[i]->getDescriptorSetLayout());
+		}
+		m_simpleRenderSystem.createPipelineLayout(m_VkDescriptorSetLayouts);
+		m_pointLightSystem.createPipelineLayout(m_VkDescriptorSetLayouts[0]);
+		/*m_simpleRenderSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
+		m_pointLightSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());*/
 		m_renderer.recreateSwapChain();
 		m_simpleRenderSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
 		m_pointLightSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
@@ -35,6 +54,13 @@ namespace AE {
 			DescriptorPool::Builder(m_devices)
 			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			//.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT)
+			//.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.build();
+		m_texturePool =
+			DescriptorPool::Builder(m_devices)
+			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT)
 			//.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.build();
 		loadGameObjects();
@@ -54,12 +80,49 @@ namespace AE {
 			uboBuffers[i]->map();
 		}
 
+		/*VkDescriptorImageInfo imageInfo{};
+		for (auto& kv : m_gameObjects) {
+			GameObject& obj = kv.second;
+			if (obj.m_model == nullptr || obj.m_model->m_texture == nullptr) {
+				continue;
+			}
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = obj.m_model->m_texture->getImageView();
+			imageInfo.sampler = obj.m_model->m_texture->getSampler();
+		}
 		std::vector<VkDescriptorSet> globalDescriptorSets(MAX_FRAMES_IN_FLIGHT);
 		for (int i = 0; i < globalDescriptorSets.size(); i++) {
 			VkDescriptorBufferInfo bufferInfo = uboBuffers[i]->descriptorInfo();
 			DescriptorWriter(*m_globalSetLayout, *m_globalPool)
 				.writeBuffer(0, &bufferInfo)
+				.writeImage(1, &imageInfo)
 				.build(globalDescriptorSets[i]);
+		}*/
+		std::vector<std::vector<VkDescriptorSet>> descriptorSets(MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < descriptorSets.size(); i++) {
+			descriptorSets[i].resize(descriptorSets.size());
+			VkDescriptorBufferInfo bufferInfo = uboBuffers[i]->descriptorInfo();
+			DescriptorWriter(*m_descriptorSetLayouts[0], *m_globalPool)
+				.writeBuffer(0, &bufferInfo)
+				.build(descriptorSets[i][0]);
+		}
+
+		VkDescriptorImageInfo imageInfo{};
+		for (auto& kv : m_gameObjects) {
+			GameObject& obj = kv.second;
+			if (obj.m_model == nullptr || obj.m_model->m_texture == nullptr) {
+				continue;
+			}
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = obj.m_model->m_texture->getImageView();
+			imageInfo.sampler = obj.m_model->m_texture->getSampler();
+		}
+		for (int i = 0; i < descriptorSets.size(); i++) {
+			for (int j = 1; j < m_descriptorSetLayouts.size(); j++) {
+				DescriptorWriter(*m_descriptorSetLayouts[j], *m_texturePool)
+					.writeImage(0, &imageInfo)
+					.build(descriptorSets[i][j]);
+			}
 		}
 
 		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
@@ -92,7 +155,8 @@ namespace AE {
 					frameTime,
 					commandBuffer,
 					m_camera,
-					globalDescriptorSets[frameIndex],
+					descriptorSets[frameIndex],
+					//globalDescriptorSets[frameIndex],
 					m_gameObjects
 				};
 
@@ -124,8 +188,13 @@ namespace AE {
 		m_simpleRenderSystem.cleanupGraphicsPipeline();
 		m_pointLightSystem.cleanupGraphicsPipeline();
 		vkDestroyCommandPool(m_devices.getLogicalDevice(), m_devices.getCommandPool(), nullptr);
-		m_globalSetLayout = nullptr; // call destructor
+		//m_globalSetLayout = nullptr; // call destructor
+		for (int i = 0; i < m_descriptorSetLayouts.size(); i++) {
+			m_VkDescriptorSetLayouts[i] = nullptr;
+			m_descriptorSetLayouts[i] = nullptr;
+		}
 		m_globalPool = nullptr; // call destructor
+		m_texturePool = nullptr; // call destructor
 		m_gameObjects.clear(); // call destructor
 		vkDestroyDevice(m_devices.getLogicalDevice(), nullptr);
 		if (m_validLayers.enableValidationLayers) {
@@ -141,20 +210,22 @@ namespace AE {
 		std::shared_ptr<Model> model = Model::createModelFromFile(m_devices, "Models/smooth_vase.obj");
 		GameObject smooth_vase = GameObject::createGameObject();
 		smooth_vase.m_model = model;
-		smooth_vase.m_transformMat.m_translation = { -.5f, .5f, 0.f };
+		smooth_vase.m_transformMat.m_translation = { 0.f, .5f, 0.f };
 		smooth_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
 		m_gameObjects.emplace(smooth_vase.getId(), std::move(smooth_vase));
 
-		model = Model::createModelFromFile(m_devices, "Models/flat_vase.obj");
+		/*model = Model::createModelFromFile(m_devices, "Models/flat_vase.obj");
 		GameObject flat_vase = GameObject::createGameObject();
 		flat_vase.m_model = model;
 		flat_vase.m_transformMat.m_translation = { .5f, .5f, 0.f };
 		flat_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
-		m_gameObjects.emplace(flat_vase.getId(), std::move(flat_vase));
+		m_gameObjects.emplace(flat_vase.getId(), std::move(flat_vase));*/
 
 		model = Model::createModelFromFile(m_devices, "Models/quad.obj");
 		GameObject floor = GameObject::createGameObject();
 		floor.m_model = model;
+		floor.m_model->createTexture("Textures/ReadyPlayerMe-Avatar.jpeg");
+		//floor.m_model->createTexture("Textures/meme.png");
 		floor.m_transformMat.m_translation = { 0.f, .5f, 0.f };
 		floor.m_transformMat.m_scale = { 3.f, 1.f, 3.f };
 		m_gameObjects.emplace(floor.getId(), std::move(floor));

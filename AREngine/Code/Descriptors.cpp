@@ -137,8 +137,7 @@ namespace AE {
         , m_pool{ pool } 
     {}
 
-    DescriptorWriter& DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo* bufferInfo) 
-    {
+    DescriptorWriter& DescriptorWriter::writeBuffer(uint32_t binding, VkDescriptorBufferInfo* bufferInfo) {
         assert(m_setLayout.m_bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
         VkDescriptorSetLayoutBinding& bindingDescription = m_setLayout.m_bindings[binding];
@@ -159,8 +158,7 @@ namespace AE {
         return *this;
     }
 
-    DescriptorWriter& DescriptorWriter::writeImage(
-        uint32_t binding, VkDescriptorImageInfo* imageInfo) {
+    DescriptorWriter& DescriptorWriter::writeImage(uint32_t binding, VkDescriptorImageInfo* imageInfo) {
         assert(m_setLayout.m_bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
         VkDescriptorSetLayoutBinding& bindingDescription = m_setLayout.m_bindings[binding];

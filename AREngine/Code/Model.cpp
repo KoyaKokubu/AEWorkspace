@@ -95,6 +95,15 @@ namespace AE {
         m_devices.copyBuffer(stagingBuffer.getBuffer(), m_indexBuffer->getBuffer(), bufferSize);
     }
 
+    void Model::createTexture(const char* filePath) {
+        m_texture = std::make_unique<Texture>(m_devices);
+        m_texture->createTextureImage(filePath);
+        //m_texture->generateMipmaps();
+        m_texture->createTextureImageView();
+        m_texture->createTextureSampler();
+        m_hasTexture = true;
+    }
+
     void Model::draw(VkCommandBuffer commandBuffer) {
         if (m_hasIndexBuffer) {
             // Parameters: (commandbuffer, indexCount, instanceCount, firstVertex, vertex offset, firstInstance)

@@ -184,6 +184,7 @@
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="RenderSystem\PointLightSystem.h" />
     <ClInclude Include="RenderSystem\SimpleRenderSystem.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Utils\AREngineIncludes.h" />
     <ClInclude Include="Devices.h" />
     <ClInclude Include="RenderSystem\GraphicsPipeline.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="RenderSystem\PointLightSystem.cpp" />
     <ClCompile Include="RenderSystem\SimpleRenderSystem.cpp" />
     <ClCompile Include="Renderer\SwapChain.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Utils\ValidationLayers.cpp" />
     <ClCompile Include="VulkanInstance.cpp" />
     <ClCompile Include="Renderer\WinApplication.cpp" />
@@ -249,6 +251,20 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Textures\meme.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Image>
+    <Image Include="Textures\ReadyPlayerMe-Avatar.jpeg">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Image>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

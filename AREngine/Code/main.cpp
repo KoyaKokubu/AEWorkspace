@@ -2,7 +2,7 @@
 //#include <glm/mat4x4.hpp>
 #include "Application.h"
 
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 int main() {
 	AE::Application app{};
