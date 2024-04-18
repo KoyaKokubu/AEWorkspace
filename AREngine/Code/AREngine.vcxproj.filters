@@ -21,6 +21,11 @@
     <None Include="Shaders\compile_point.bat">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Shaders\simple_shader_with_texture.vert" />
+    <None Include="Shaders\simple_shader_with_texture.frag" />
+    <None Include="Shaders\compile_simple_texture.bat">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer\WinApplication.h">

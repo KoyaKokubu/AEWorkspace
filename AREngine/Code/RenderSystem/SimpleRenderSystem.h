@@ -23,10 +23,11 @@ namespace AE {
 		SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 		SimpleRenderSystem(SimpleRenderSystem&&) = delete;
 		SimpleRenderSystem& operator=(SimpleRenderSystem&&) = delete;
-
-		void createPipelineLayout(std::vector<VkDescriptorSetLayout> descriptorSetLayouts);
-		//void createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout);
+		
+		void createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout);
 		void createGraphicsPipeline(VkRenderPass renderPass);
+		void createPipelineLayoutWithTexture(std::vector<VkDescriptorSetLayout> descriptorSetLayouts);
+		void createGraphicsPipelineWithTexture(VkRenderPass renderPass);
 		void renderGameObjects(FrameInfo& frameInfo);
 		void cleanupGraphicsPipeline();
 
@@ -34,6 +35,8 @@ namespace AE {
 		Devices& m_devices;
 		VkPipelineLayout m_pipelineLayout;
 		std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
+		VkPipelineLayout m_pipelineLayoutWithTexture;
+		std::unique_ptr<GraphicsPipeline> m_graphicsPipelineWithTexture;
 	};
 
 } // namespace AE

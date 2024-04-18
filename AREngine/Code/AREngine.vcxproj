@@ -168,8 +168,11 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Shaders\compile_point.bat" />
+    <None Include="Shaders\compile_simple_texture.bat" />
     <None Include="Shaders\point_light.frag" />
     <None Include="Shaders\point_light.vert" />
+    <None Include="Shaders\simple_shader_with_texture.frag" />
+    <None Include="Shaders\simple_shader_with_texture.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />

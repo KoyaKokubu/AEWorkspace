@@ -15,19 +15,20 @@ namespace AE {
 	void SimpleRenderSystem::cleanupGraphicsPipeline() {
 		vkDestroyPipeline(m_devices.getLogicalDevice(), m_graphicsPipeline->getGraphicsPipeline(), nullptr);
 		vkDestroyPipelineLayout(m_devices.getLogicalDevice(), m_pipelineLayout, nullptr);
+		vkDestroyPipeline(m_devices.getLogicalDevice(), m_graphicsPipelineWithTexture->getGraphicsPipeline(), nullptr);
+		vkDestroyPipelineLayout(m_devices.getLogicalDevice(), m_pipelineLayoutWithTexture, nullptr);
 	}
 
 	// "uniform" values in shaders, which are globals similar to dynamic state variables that can be changed at drawing time to alter the behavior of your shaders without having to recreate them. They are commonly used to pass the 
 	// (ex) transformation matrix, texture samplers
-	void SimpleRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout> descriptorSetLayouts) {
-	//void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
+	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout) {
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(SimplePushConstantData);
 
 		// index indicates set number
-		//std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalDescriptorSetLayout };
+		std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalDescriptorSetLayout };
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -52,6 +53,37 @@ namespace AE {
 		m_graphicsPipeline->createGraphicsPipeline(SIMPLE_VERT_SHADER_PATH, SIMPLE_FRAG_SHADER_PATH, pipelineConfig);
 	}
 
+	void SimpleRenderSystem::createPipelineLayoutWithTexture(std::vector<VkDescriptorSetLayout> descriptorSetLayouts) {
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(SimplePushConstantData);
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
+		pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+		if (vkCreatePipelineLayout(m_devices.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayoutWithTexture)
+			!= VK_SUCCESS) 
+		{
+			throw std::runtime_error("failed to create pipeline layout!");
+		}
+	}
+
+	void SimpleRenderSystem::createGraphicsPipelineWithTexture(VkRenderPass renderPass) {
+		assert(m_pipelineLayoutWithTexture != nullptr && "Cannot create pipeline before pipeline layout");
+
+		PipelineConfigInfo pipelineConfig{};
+		GraphicsPipeline::defaultPipelineConfig(pipelineConfig);
+		pipelineConfig.renderPass = renderPass;
+		pipelineConfig.pipelineLayout = m_pipelineLayoutWithTexture;
+		m_graphicsPipelineWithTexture = std::make_unique<GraphicsPipeline>(m_devices, SIMPLE_TEX_SHADER_COMPILER_PATH);
+		m_graphicsPipelineWithTexture->createGraphicsPipeline(SIMPLE_VERT_TEX_SHADER_PATH, SIMPLE_FRAG_TEX_SHADER_PATH, pipelineConfig);
+	}
+
 	void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo) {
 		m_graphicsPipeline->bind(frameInfo.m_commandBuffer);
 
@@ -66,9 +98,7 @@ namespace AE {
 			   // If we want to bind a new set and it can be added to the end,
 			   // existing sets would not be rebinded by setting the last index here. 
 			   // This is why frequently shared sets should occupy the earlier set numbers.
-			//1, // descriptor set count
-			//&frameInfo.m_globalDescriptorSet,
-			frameInfo.m_descriptorSets.size(), // descriptor set count
+			1, // descriptor set count
 			&frameInfo.m_descriptorSets[0],
 			0, // can be used for specifying dynamic offsets
 			nullptr // can be used for specifying dynamic offsets
@@ -76,7 +106,7 @@ namespace AE {
 
 		for (auto& kv : frameInfo.m_gameObjects) {
 			GameObject& obj = kv.second;
-			if (obj.m_model == nullptr) {
+			if (obj.m_model == nullptr || obj.m_model->m_texture != nullptr) {
 				continue;
 			}
 
@@ -87,6 +117,44 @@ namespace AE {
 			vkCmdPushConstants(
 				frameInfo.m_commandBuffer,
 				m_pipelineLayout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(SimplePushConstantData),
+				&push
+			);
+
+			obj.m_model->bind(frameInfo.m_commandBuffer);
+			obj.m_model->draw(frameInfo.m_commandBuffer);
+		}
+
+		// Render Game Objects which have texture
+		m_graphicsPipelineWithTexture->bind(frameInfo.m_commandBuffer);
+		vkCmdBindDescriptorSets(
+			frameInfo.m_commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_pipelineLayoutWithTexture,
+			0, // first set number. 
+			   // If we want to bind a new set and it can be added to the end,
+			   // existing sets would not be rebinded by setting the last index here. 
+			   // This is why frequently shared sets should occupy the earlier set numbers.
+			frameInfo.m_descriptorSets.size(), // descriptor set count
+			&frameInfo.m_descriptorSets[0],
+			0, // can be used for specifying dynamic offsets
+			nullptr // can be used for specifying dynamic offsets
+		);
+		for (auto& kv : frameInfo.m_gameObjects) {
+			GameObject& obj = kv.second;
+			if (obj.m_model == nullptr || obj.m_model->m_texture == nullptr) {
+				continue;
+			}
+
+			SimplePushConstantData push{};
+			push.modelMatrix = obj.m_transformMat.mat4();
+			push.normalMatrix = obj.m_transformMat.normalMatrix();
+
+			vkCmdPushConstants(
+				frameInfo.m_commandBuffer,
+				m_pipelineLayoutWithTexture,
 				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0,
 				sizeof(SimplePushConstantData),

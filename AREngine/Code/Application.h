@@ -49,7 +49,6 @@ namespace AE {
 		PointLightSystem m_pointLightSystem{ m_devices };
 		std::unique_ptr<DescriptorPool> m_globalPool{};
 		std::unique_ptr<DescriptorPool> m_texturePool{};
-		//std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
 		std::vector<std::unique_ptr<DescriptorSetLayout>> m_descriptorSetLayouts;
 		std::vector<VkDescriptorSetLayout> m_VkDescriptorSetLayouts;
 		GameObject::Map m_gameObjects;

@@ -22,11 +22,6 @@ namespace AE {
 		m_devices.createSurface(m_vkInstance.getInstance(), m_winApp);
 		m_devices.pickPhysicalDevice(m_vkInstance.getInstance());
 		m_devices.createLogicalDevice();
-		/*m_globalSetLayout =
-			DescriptorSetLayout::Builder(m_devices)
-			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
-			.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-			.build();*/
 		// global descriptor set layout
 		m_descriptorSetLayouts.emplace_back(
 			DescriptorSetLayout::Builder(m_devices)
@@ -42,26 +37,23 @@ namespace AE {
 		for (int i = 0; i < m_descriptorSetLayouts.size(); i++) {
 			m_VkDescriptorSetLayouts.emplace_back(m_descriptorSetLayouts[i]->getDescriptorSetLayout());
 		}
-		m_simpleRenderSystem.createPipelineLayout(m_VkDescriptorSetLayouts);
+		m_simpleRenderSystem.createPipelineLayout(m_VkDescriptorSetLayouts[0]);
+		m_simpleRenderSystem.createPipelineLayoutWithTexture(m_VkDescriptorSetLayouts);
 		m_pointLightSystem.createPipelineLayout(m_VkDescriptorSetLayouts[0]);
-		/*m_simpleRenderSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());
-		m_pointLightSystem.createPipelineLayout(m_globalSetLayout->getDescriptorSetLayout());*/
 		m_renderer.recreateSwapChain();
 		m_simpleRenderSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
+		m_simpleRenderSystem.createGraphicsPipelineWithTexture(m_renderer.getSwapChainRenderPass());
 		m_pointLightSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
 		m_devices.createCommandPool();
 		m_globalPool = 
 			DescriptorPool::Builder(m_devices)
 			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
-			//.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT)
-			//.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.build();
 		m_texturePool =
 			DescriptorPool::Builder(m_devices)
 			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT)
-			//.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.build();
 		loadGameObjects();
 		m_renderer.createCommandBuffers();
@@ -80,24 +72,6 @@ namespace AE {
 			uboBuffers[i]->map();
 		}
 
-		/*VkDescriptorImageInfo imageInfo{};
-		for (auto& kv : m_gameObjects) {
-			GameObject& obj = kv.second;
-			if (obj.m_model == nullptr || obj.m_model->m_texture == nullptr) {
-				continue;
-			}
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = obj.m_model->m_texture->getImageView();
-			imageInfo.sampler = obj.m_model->m_texture->getSampler();
-		}
-		std::vector<VkDescriptorSet> globalDescriptorSets(MAX_FRAMES_IN_FLIGHT);
-		for (int i = 0; i < globalDescriptorSets.size(); i++) {
-			VkDescriptorBufferInfo bufferInfo = uboBuffers[i]->descriptorInfo();
-			DescriptorWriter(*m_globalSetLayout, *m_globalPool)
-				.writeBuffer(0, &bufferInfo)
-				.writeImage(1, &imageInfo)
-				.build(globalDescriptorSets[i]);
-		}*/
 		std::vector<std::vector<VkDescriptorSet>> descriptorSets(MAX_FRAMES_IN_FLIGHT);
 		for (int i = 0; i < descriptorSets.size(); i++) {
 			descriptorSets[i].resize(descriptorSets.size());
@@ -156,7 +130,6 @@ namespace AE {
 					commandBuffer,
 					m_camera,
 					descriptorSets[frameIndex],
-					//globalDescriptorSets[frameIndex],
 					m_gameObjects
 				};
 
