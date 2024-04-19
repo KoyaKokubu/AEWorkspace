@@ -159,9 +159,68 @@ namespace AE {
 		}
 	}
 
+	void SwapChain::createColorResources() {
+		VkFormat colorFormat = m_swapChainImageFormat;
+#ifdef ENABLE_MSAA
+		VkSampleCountFlagBits msaaSamples = m_devices.getMSAAsamples();
+#else
+		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+#endif
+
+		m_msaaImages.resize(m_swapChainImages.size());
+		m_msaaImageMemorys.resize(m_swapChainImages.size());
+		m_msaaImageViews.resize(m_swapChainImages.size());
+
+		for (int i = 0; i < m_msaaImages.size(); i++) {
+			VkImageCreateInfo imageInfo{};
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = VK_IMAGE_TYPE_2D;
+			imageInfo.extent.width = m_swapChainExtent.width;
+			imageInfo.extent.height = m_swapChainExtent.height;
+			imageInfo.extent.depth = 1;
+			imageInfo.mipLevels = 1;
+			imageInfo.arrayLayers = 1;
+			imageInfo.format = colorFormat;
+			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageInfo.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			imageInfo.samples = msaaSamples;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.flags = 0;
+
+			m_devices.createImageWithInfo(
+				imageInfo,
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+				m_msaaImages[i],
+				m_msaaImageMemorys[i]
+			);
+
+			VkImageViewCreateInfo imageViewInfo{};
+			imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			imageViewInfo.format = colorFormat;
+			imageViewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageViewInfo.subresourceRange.baseMipLevel = 0;
+			imageViewInfo.subresourceRange.baseArrayLayer = 0;
+			imageViewInfo.subresourceRange.layerCount = 1;
+			imageViewInfo.subresourceRange.levelCount = 1;
+			imageViewInfo.image = m_msaaImages[i];
+
+			if (vkCreateImageView(m_devices.getLogicalDevice(), &imageViewInfo, nullptr, &m_msaaImageViews[i]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create texture image view!");
+			}
+		}
+	}
+
 	void SwapChain::createDepthResources() {
 		VkFormat depthFormat = findDepthFormat();
 		m_swapChainDepthFormat = depthFormat;
+#ifdef ENABLE_MSAA
+		VkSampleCountFlagBits msaaSamples = m_devices.getMSAAsamples();
+#else
+		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+#endif
 
 		m_depthImages.resize(m_swapChainImages.size());
 		m_depthImageMemorys.resize(m_swapChainImages.size());
@@ -180,7 +239,7 @@ namespace AE {
 			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			imageInfo.samples = msaaSamples;
 			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			imageInfo.flags = 0;
 
@@ -188,7 +247,8 @@ namespace AE {
 				imageInfo,
 				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 				m_depthImages[i],
-				m_depthImageMemorys[i]);
+				m_depthImageMemorys[i]
+			);
 
 			VkImageViewCreateInfo viewInfo{};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -216,10 +276,37 @@ namespace AE {
 
 	// Render Pass is kind of a blueprint for a graphics pipeline to know what layout to expect for the output frame buffers.
 	void SwapChain::createRenderPass() {
+		// Use Render Target as color buffer
+		VkAttachmentDescription colorAttachment = {};
+		colorAttachment.format = m_swapChainImageFormat;
+#ifdef ENABLE_MSAA
+		colorAttachment.samples = m_devices.getMSAAsamples();
+#else
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+#endif
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+#ifdef ENABLE_MSAA
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
+
+		VkAttachmentReference colorAttachmentRef = {};
+		colorAttachmentRef.attachment = 0; // layout(location = 0) out vec4 outColor; // output from Fragment Shader
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
 		// Use Render Target as depth buffer
 		VkAttachmentDescription depthAttachment{};
 		depthAttachment.format = findDepthFormat();
+#ifdef ENABLE_MSAA
+		depthAttachment.samples = m_devices.getMSAAsamples();
+#else
 		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+#endif
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -231,20 +318,22 @@ namespace AE {
 		depthAttachmentRef.attachment = 1;
 		depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		// Use Render Target as color buffer
-		VkAttachmentDescription colorAttachment = {};
-		colorAttachment.format = m_swapChainImageFormat;
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#ifdef ENABLE_MSAA
+		// Resolve attachment
+		VkAttachmentDescription colorAttachmentResolve{};
+		colorAttachmentResolve.format = m_swapChainImageFormat;
+		colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-		VkAttachmentReference colorAttachmentRef = {};
-		colorAttachmentRef.attachment = 0; // layout(location = 0) out vec4 outColor; // output from Fragment Shader
-		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		VkAttachmentReference colorAttachmentResolveRef{};
+		colorAttachmentResolveRef.attachment = 2;
+		colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#endif
 
 		// Subpass settings
 		VkSubpassDescription subpass = {};
@@ -252,6 +341,9 @@ namespace AE {
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
+#ifdef ENABLE_MSAA
+		subpass.pResolveAttachments = &colorAttachmentResolveRef;
+#endif
 
 		// Subpass dependencies : specify memory and execution dependencies between subpasses.
 		// These settings will prevent the transition from happening until it's actually necessary (and allowed): when we want to start writing colors to it.
@@ -265,7 +357,11 @@ namespace AE {
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
+#ifdef ENABLE_MSAA
+		std::array<VkAttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
+#else
 		std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+#endif
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -284,7 +380,11 @@ namespace AE {
 	void SwapChain::createFrameBuffers() {
 		m_framebuffers.resize(m_swapChainImages.size());
 		for (size_t i = 0; i < m_swapChainImages.size(); i++) {
+#ifdef ENABLE_MSAA
+			std::array<VkImageView, 3> attachments = { m_msaaImageViews[i], m_depthImageViews[i], m_swapChainImageViews[i] };
+#else
 			std::array<VkImageView, 2> attachments = { m_swapChainImageViews[i], m_depthImageViews[i] };
+#endif
 
 			VkFramebufferCreateInfo framebufferInfo = {};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

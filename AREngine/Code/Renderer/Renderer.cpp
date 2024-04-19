@@ -45,6 +45,9 @@ namespace AE {
 			m_swapChain = std::make_unique<SwapChain>(m_devices);
 			m_swapChain->createSwapChain(m_winApp);
 			m_swapChain->createImageViews();
+#ifdef ENABLE_MSAA
+			m_swapChain->createColorResources();
+#endif
 			m_swapChain->createDepthResources();
 			m_swapChain->createRenderPass();
 			m_swapChain->createFrameBuffers();
@@ -56,6 +59,9 @@ namespace AE {
 			m_swapChain = std::make_unique<SwapChain>(m_devices, oldSwapChain);
 			m_swapChain->createSwapChain(m_winApp);
 			m_swapChain->createImageViews();
+#ifdef ENABLE_MSAA
+			m_swapChain->createColorResources();
+#endif
 			m_swapChain->createDepthResources();
 			m_swapChain->createRenderPass();
 			m_swapChain->createFrameBuffers();
@@ -82,6 +88,13 @@ namespace AE {
 			vkDestroyImage(m_devices.getLogicalDevice(), m_swapChain->getDepthImages()[i], nullptr);
 			vkFreeMemory(m_devices.getLogicalDevice(), m_swapChain->getDepthImageMemorys()[i], nullptr);
 		}
+#ifdef ENABLE_MSAA
+		for (int i = 0; i < m_swapChain->getDepthImages().size(); i++) {
+			vkDestroyImageView(m_devices.getLogicalDevice(), m_swapChain->getMSAAImageViews()[i], nullptr);
+			vkDestroyImage(m_devices.getLogicalDevice(), m_swapChain->getMSAAImages()[i], nullptr);
+			vkFreeMemory(m_devices.getLogicalDevice(), m_swapChain->getMSAAImageMemorys()[i], nullptr);
+		}
+#endif
 		for (VkImageView imageView : m_swapChain->getImageViews()) {
 			vkDestroyImageView(m_devices.getLogicalDevice(), imageView, nullptr);
 		}

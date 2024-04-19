@@ -122,8 +122,8 @@ namespace AE {
 	void GraphicsPipeline::createGraphicsPipeline(
 		const char* vertFilePath, 
 		const char* fragFilePath,
-		const PipelineConfigInfo& configInfo
-	) {
+		const PipelineConfigInfo& configInfo) 
+	{
 		assert(
 			configInfo.pipelineLayout != VK_NULL_HANDLE &&
 			"CANNOT create graphics pipeline: no pipelineLayout provided in configInfo"
@@ -171,6 +171,18 @@ namespace AE {
 		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
+		// MSAA
+#ifdef ENABLE_MSAA
+		VkPipelineMultisampleStateCreateInfo msaaConfigInfo{};
+		msaaConfigInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		msaaConfigInfo.sampleShadingEnable = VK_FALSE;
+		msaaConfigInfo.rasterizationSamples = m_devices.getMSAAsamples();
+		msaaConfigInfo.minSampleShading = 1.0f;           // Optional
+		msaaConfigInfo.pSampleMask = nullptr;             // Optional
+		msaaConfigInfo.alphaToCoverageEnable = VK_FALSE;  // Optional
+		msaaConfigInfo.alphaToOneEnable = VK_FALSE;       // Optional
+#endif
+
 		// Create Graphics Pipeline
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -180,7 +192,11 @@ namespace AE {
 		pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
 		pipelineInfo.pViewportState = &configInfo.viewportInfo;
 		pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
+#ifdef ENABLE_MSAA
+		pipelineInfo.pMultisampleState = &msaaConfigInfo;
+#else
 		pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
+#endif
 		pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
 		pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
 		pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;

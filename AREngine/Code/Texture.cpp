@@ -66,7 +66,7 @@ namespace AE {
         imageInfo.extent = { static_cast<uint32_t>(m_texWidth), static_cast<uint32_t>(m_texHeight), 1 }; // {width, height, depth}
 
         // transfer from staging buffer and use this image for texture sampling
-        imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
         // Allocate memory
         m_devices.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_image, m_imageMemory);
@@ -80,9 +80,12 @@ namespace AE {
             static_cast<uint>(m_texHeight),
             1
         );
+#ifdef ENABLE_MIPMAP
+        generateMipmaps();
+#else
         // change layout from TRANSFER to SHADER_READ_ONLY
         transitionImageLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
+#endif
         // generateMipmaps();
         m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
@@ -104,22 +107,26 @@ namespace AE {
 #endif
         imageViewInfo.image = m_image;
 
-        vkCreateImageView(m_devices.getLogicalDevice(), &imageViewInfo, nullptr, &m_imageView);
+        if(vkCreateImageView(m_devices.getLogicalDevice(), &imageViewInfo, nullptr, &m_imageView) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create texture image view!");
+        }
     }
 
     void Texture::createTextureSampler() {
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.magFilter = VK_FILTER_LINEAR; // Filter used when the object is close to the camera
         samplerInfo.minFilter = VK_FILTER_LINEAR;
         samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // behavior when going beyond the image dimensions.
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT; // behavior when going beyond the image dimensions.
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT; // behavior when going beyond the image dimensions.
+
+        // behavior when going beyond the image dimensions.
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; // VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; // behavior when going beyond the image dimensions.
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT; // behavior when going beyond the image dimensions.
         samplerInfo.mipLodBias = 0.0f;
         samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
         samplerInfo.minLod = 0.f;
-#ifdef MIPMAP
+#ifdef ENABLE_MIPMAP
         samplerInfo.maxLod = static_cast<float>(m_mipLevels);
 #else
         samplerInfo.maxLod = 0.f;
@@ -172,7 +179,18 @@ namespace AE {
             throw std::runtime_error("unsupported layout transition!");
         }
 
-        vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        vkCmdPipelineBarrier(
+            commandBuffer, 
+            sourceStage, 
+            destinationStage, 
+            0, 
+            0, 
+            nullptr, 
+            0, 
+            nullptr, 
+            1, 
+            &barrier
+        );
 
         m_devices.endSingleTimeCommands(commandBuffer);
     }

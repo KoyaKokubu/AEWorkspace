@@ -75,6 +75,7 @@ namespace AE {
 		VkCommandPool& getCommandPool() { return m_commandPool; }
 		VkQueue& getGraphicsQueue() { return m_graphicsQueue; }
 		VkQueue& getPresentQueue() { return m_presentQueue; }
+		VkSampleCountFlagBits getMSAAsamples() { return m_msaaSamples; }
 
 	private:
 		bool isDeviceSuitable(VkPhysicalDevice device);
@@ -82,6 +83,7 @@ namespace AE {
 		int rateDeviceSuitability(VkPhysicalDevice device);
 #endif
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+		VkSampleCountFlagBits getMaxUsableSampleCount();
 
 		const std::vector<const char*> deviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -97,5 +99,6 @@ namespace AE {
 		VkQueue m_presentQueue;
 		VkSurfaceKHR m_surface;
 		VkCommandPool m_commandPool;
+		VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT; // msaa: Multisample anti-aliasing
 	};
 } // namespace AE

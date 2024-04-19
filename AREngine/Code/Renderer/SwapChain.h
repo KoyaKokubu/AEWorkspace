@@ -25,6 +25,7 @@ namespace AE {
 
 		void createSwapChain(AE::WinApplication& winApp);
 		void createImageViews();
+		void createColorResources();
 		void createDepthResources();
 		void createRenderPass();
 		void createFrameBuffers();
@@ -47,6 +48,9 @@ namespace AE {
 		const std::vector<VkImage>& getDepthImages() const { return m_depthImages; }
 		const std::vector<VkImageView>& getDepthImageViews() const { return m_depthImageViews; }
 		const std::vector<VkDeviceMemory>& getDepthImageMemorys() const { return m_depthImageMemorys; }
+		const std::vector<VkImage>& getMSAAImages() const { return m_msaaImages; }
+		const std::vector<VkImageView>& getMSAAImageViews() const { return m_msaaImageViews; }
+		const std::vector<VkDeviceMemory>& getMSAAImageMemorys() const { return m_msaaImageMemorys; }
 		const std::vector<VkFramebuffer>& getFrameBuffers() const { return m_framebuffers; }
 		const VkRenderPass& getRenderPass() const { return m_renderPass; }
 		const std::vector<VkSemaphore>& getImageAvailableSemaphores() const { return m_imageAvailableSemaphores; }
@@ -77,6 +81,9 @@ namespace AE {
 		std::vector<VkImage> m_depthImages;
 		std::vector<VkImageView> m_depthImageViews;
 		std::vector<VkDeviceMemory> m_depthImageMemorys;
+		std::vector<VkImage> m_msaaImages;
+		std::vector<VkImageView> m_msaaImageViews;
+		std::vector<VkDeviceMemory> m_msaaImageMemorys;
 		VkRenderPass m_renderPass;
 		std::vector<VkFramebuffer> m_framebuffers;
 	};

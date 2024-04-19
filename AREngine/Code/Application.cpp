@@ -183,22 +183,22 @@ namespace AE {
 		std::shared_ptr<Model> model = Model::createModelFromFile(m_devices, "Models/smooth_vase.obj");
 		GameObject smooth_vase = GameObject::createGameObject();
 		smooth_vase.m_model = model;
-		smooth_vase.m_transformMat.m_translation = { 0.f, .5f, 0.f };
+		smooth_vase.m_transformMat.m_translation = { 0.35f, .5f, 0.f };
 		smooth_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
 		m_gameObjects.emplace(smooth_vase.getId(), std::move(smooth_vase));
 
-		/*model = Model::createModelFromFile(m_devices, "Models/flat_vase.obj");
+		model = Model::createModelFromFile(m_devices, "Models/flat_vase.obj");
 		GameObject flat_vase = GameObject::createGameObject();
 		flat_vase.m_model = model;
-		flat_vase.m_transformMat.m_translation = { .5f, .5f, 0.f };
+		flat_vase.m_model->createTexture("Textures/ReadyPlayerMe-Avatar.jpeg");
+		flat_vase.m_transformMat.m_translation = { -.35f, .5f, 0.f };
 		flat_vase.m_transformMat.m_scale = { 3.f, 1.5f, 3.f };
-		m_gameObjects.emplace(flat_vase.getId(), std::move(flat_vase));*/
+		m_gameObjects.emplace(flat_vase.getId(), std::move(flat_vase));
 
 		model = Model::createModelFromFile(m_devices, "Models/quad.obj");
 		GameObject floor = GameObject::createGameObject();
 		floor.m_model = model;
 		floor.m_model->createTexture("Textures/ReadyPlayerMe-Avatar.jpeg");
-		//floor.m_model->createTexture("Textures/meme.png");
 		floor.m_transformMat.m_translation = { 0.f, .5f, 0.f };
 		floor.m_transformMat.m_scale = { 3.f, 1.f, 3.f };
 		m_gameObjects.emplace(floor.getId(), std::move(floor));

@@ -27,4 +27,6 @@
 
 #define MAX_LIGHTS 10 // Don't forget to update this in shaders too unless implementing the specialization constants
 
-//#define ENABLE_MIPMAP
+#define ENABLE_MIPMAP
+
+#define ENABLE_MSAA
