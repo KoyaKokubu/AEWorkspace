@@ -25,6 +25,7 @@ namespace AE {
 	// Global Uniform Buffer Object
 	struct ParticleUBO {
 		float deltaTime = 0.f;
+		glm::mat4 transformMat{ 1.f };
 	};
 
 	struct FrameInfo {

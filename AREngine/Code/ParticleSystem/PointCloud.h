@@ -7,7 +7,7 @@
 #include "../FrameInfo.h"
 
 #define POINT_CLOUD_NUM 8
-#define PARTICLE_NUM 1000//00
+#define PARTICLE_NUM 1000
 
 namespace AE {
 
@@ -15,12 +15,12 @@ namespace AE {
     public:
         struct ParticleVertex {
             ParticleVertex() {};
-            ParticleVertex(float px, float py) : position{ px, py } {}
+            ParticleVertex(float px, float py, float pz) : position{ px, py, pz } {}
 
             static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
             static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
-            glm::vec2 position;
+            glm::vec3 position;
         };
 
         struct ParticleInstance {
@@ -28,7 +28,7 @@ namespace AE {
             ParticleInstance(
                 float px, float py, float pz,
                 float cx = 1.f, float cy = 1.f, float cz = 1.f, float ca = 1.0f,
-                float vx = 0.f, float vy = 0.f, float vz = 0.f
+                float vx = 1.f, float vy = 0.f, float vz = 1.f
             )
                 : position{ px, py, pz, 1.0f }
                 , color{ cx, cy, cz, ca }

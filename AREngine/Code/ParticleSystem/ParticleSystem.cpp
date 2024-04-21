@@ -65,8 +65,8 @@ namespace AE {
 
 		PipelineConfigInfo pipelineConfig{};
 		GraphicsPipeline::defaultPipelineConfig(pipelineConfig);
-		GraphicsPipeline::enableAlphaBlending(pipelineConfig);
-		pipelineConfig.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+		//GraphicsPipeline::enableAlphaBlending(pipelineConfig);
+		//pipelineConfig.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 		pipelineConfig.bindingDescriptions = PointCloud::ParticleVertex::getBindingDescriptions();
 		pipelineConfig.attributeDescriptions = PointCloud::ParticleVertex::getAttributeDescriptions();
 		pipelineConfig.renderPass = renderPass;
@@ -88,7 +88,7 @@ namespace AE {
 			nullptr
 		);
 		
-		vkCmdDispatch(frameInfo.m_commandBuffer, POINT_CLOUD_NUM * PARTICLE_NUM / 256, 1, 1);
+		vkCmdDispatch(frameInfo.m_commandBuffer, POINT_CLOUD_NUM * PARTICLE_NUM / 200, 1, 1);
 	}
 
 	void ParticleSystem::renderPointCloud(FrameInfo& frameInfo) {

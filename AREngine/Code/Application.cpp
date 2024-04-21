@@ -175,7 +175,12 @@ namespace AE {
 				uboBuffers[frameIndex]->flush();
 
 				ParticleUBO particleUBO{};
-				particleUBO.deltaTime = 1.f;
+				particleUBO.deltaTime = frameTime;
+				/*particleUBO.transformMat = glm::rotate(
+					glm::mat4(1.f),
+					frameTime,
+					{ 0.f, -1.f, 0.f }
+				);*/
 				particleUBObuffers[frameIndex]->writeToBuffer(&particleUBO);
 				particleUBObuffers[frameIndex]->flush();
 
@@ -186,8 +191,8 @@ namespace AE {
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
 				m_particleSystem.renderPointCloud(frameInfo);
 				// render solid objects first, then render any semi-transparent objects
-				m_simpleRenderSystem.renderGameObjects(frameInfo);
-				m_pointLightSystem.render(frameInfo);
+				//m_simpleRenderSystem.renderGameObjects(frameInfo);
+				//m_pointLightSystem.render(frameInfo);
 				
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();

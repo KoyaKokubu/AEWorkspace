@@ -30,16 +30,16 @@ namespace AE {
     }
 
     void PointCloud::createVertexBuffers() {
-        std::vector<glm::vec2> vertices{
-            // {-1.f, -1.f},
-            {-1.f, 1.f},
-            {1.f, 1.f},
-            {1.f, -1.f}
+        std::vector<glm::vec3> vertices{
+            {-1.f, -1.f, 0.f},
+            {-1.f, 1.f, 0.f},
+            {1.f, 1.f, 0.f},
+            {1.f, -1.f, 0.f}
         };
         //{ 0, 2, 1, 2, 0, 3}
 
         for (int i = 0; i < vertices.size(); i++) {
-            m_vertices.emplace_back(vertices[i].x, vertices[i].y);
+            m_vertices.emplace_back(vertices[i].x, vertices[i].y, vertices[i].z);
         }
 
         m_vertexCount = static_cast<uint32_t>(m_vertices.size());
@@ -72,7 +72,7 @@ namespace AE {
     }
 
     void PointCloud::createIndexBuffers() {
-        std::vector<uint32_t> indices{ 0, 2, 1 }; //, 2, 0, 3};
+        std::vector<uint32_t> indices{ 0, 2, 1, 2, 0, 3};
 
         m_indexCount = static_cast<uint32_t>(indices.size());
 

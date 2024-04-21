@@ -1,7 +1,7 @@
 #version 450
 
 layout (location = 0) in vec4 fragColor;
-// layout (location = 1) in float fragOffset;
+layout (location = 1) in vec2 fragOffset;
 layout (location = 0) out vec4 outColor;
 
 struct PointLight {
@@ -21,13 +21,13 @@ layout (set = 0, binding = 0) uniform GlobalUbo {
 const float M_PI = 3.1415926538;
 
 void main() {
-	outColor = fragColor;
+	// outColor = fragColor;
 	
-	// float distance = sqrt(dot(fragOffset, fragOffset));
-	// if (distance >= 1) {
-	// 	discard;
-	// }
+	float distance = sqrt(dot(fragOffset, fragOffset));
+	if (distance >= 1) {
+		discard;
+	}
 
-	// float cosDis = 0.5 * (cos(distance * M_PI) + 1.0);
-	// outColor = vec4(fragColor.xyz + cosDis, cosDis);
+	float cosDis = 0.5 * (cos(distance * M_PI) + 1.0);
+	outColor = vec4(fragColor.xyz + cosDis, cosDis);
 }
