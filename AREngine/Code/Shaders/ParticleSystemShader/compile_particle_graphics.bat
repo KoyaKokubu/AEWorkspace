@@ -1,0 +1,2 @@
+C:\VulkanSDK\1.3.280.0\Bin\glslc.exe Shaders\ParticleSystemShader\particle_shader.vert -o Shaders\ParticleSystemShader\particle_shader.vert.spv
+C:\VulkanSDK\1.3.280.0\Bin\glslc.exe Shaders\ParticleSystemShader\particle_shader.frag -o Shaders\ParticleSystemShader\particle_shader.frag.spv

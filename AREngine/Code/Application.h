@@ -14,6 +14,7 @@
 #include "Camera.h"
 #include "Input/KeyboardMovementController.h"
 #include "Descriptors.h"
+#include "ParticleSystem/ParticleSystem.h"
 
 namespace AE {
 
@@ -39,6 +40,7 @@ namespace AE {
 		void cleanup();
 
 		void loadGameObjects();
+		void loadPointCloud();
 
 		WinApplication m_winApp{ WIDTH, HEIGHT, m_appName };
 		ValidationLayers m_validLayers;
@@ -47,6 +49,7 @@ namespace AE {
 		Renderer m_renderer{ m_winApp, m_devices };
 		SimpleRenderSystem m_simpleRenderSystem{ m_devices };
 		PointLightSystem m_pointLightSystem{ m_devices };
+		ParticleSystem m_particleSystem{ m_devices };
 		std::unique_ptr<DescriptorPool> m_globalPool{};
 		std::unique_ptr<DescriptorPool> m_texturePool{};
 		std::vector<std::unique_ptr<DescriptorSetLayout>> m_descriptorSetLayouts;

@@ -40,7 +40,4 @@ void main() {
 		+ push.radius * fragOffset.x * cameraRightWorld
 		+ push.radius * fragOffset.y * cameraUpWorld;
 	gl_Position = ubo.projection * ubo.view * vec4(positionWorld, 1.0);
-	
-	// vec2 positionClip = ubo.projection * ubo.view * vec4(ubo.lightPosition, 1.0);
-	// gl_Position = positionClip + LIGHT_RADIUS * fragOffset.x + LIGHT_RADIUS * fragOffset.y;
 }

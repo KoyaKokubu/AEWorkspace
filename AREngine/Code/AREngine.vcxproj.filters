@@ -16,16 +16,23 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shaders\point_light.frag" />
-    <None Include="Shaders\point_light.vert" />
-    <None Include="Shaders\compile_point.bat">
+    <None Include="Shaders\PointLightShader\point_light.frag" />
+    <None Include="Shaders\PointLightShader\point_light.vert" />
+    <None Include="Shaders\PointLightShader\compile_point.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Shaders\simple_shader_with_texture.vert" />
-    <None Include="Shaders\simple_shader_with_texture.frag" />
-    <None Include="Shaders\compile_simple_texture.bat">
+    <None Include="Shaders\TextureShader\simple_shader_with_texture.vert" />
+    <None Include="Shaders\TextureShader\simple_shader_with_texture.frag" />
+    <None Include="Shaders\TextureShader\compile_simple_texture.bat">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Shaders\ParticleSystemShader\compile_particle_system.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Shaders\ParticleSystemShader\particle_compute.comp" />
+    <None Include="Shaders\ParticleSystemShader\particle_compute.comp.spv" />
+    <None Include="Shaders\ParticleSystemShader\particle_shader.frag" />
+    <None Include="Shaders\ParticleSystemShader\particle_shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderer\WinApplication.h">
@@ -94,6 +101,15 @@
     <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ParticleSystem\PointCloud.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem\ParticleSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem\ComputePipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -150,11 +166,20 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ParticleSystem\PointCloud.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem\ParticleSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem\ComputePipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\simple_shader.vert" />
-    <Text Include="Shaders\simple_shader.frag" />
-    <Text Include="Shaders\compile_simple.bat" />
+    <Text Include="Shaders\SimpleShader\simple_shader.vert" />
+    <Text Include="Shaders\SimpleShader\simple_shader.frag" />
+    <Text Include="Shaders\SimpleShader\compile_simple.bat" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Models\colored_cube.obj" />

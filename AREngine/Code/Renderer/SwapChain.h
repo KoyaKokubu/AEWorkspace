@@ -21,7 +21,8 @@ namespace AE {
 		SwapChain& operator=(SwapChain&&) = delete;
 		
 		VkResult acquireNextImage(uint32_t* imageIndex);
-		VkResult submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
+		void submitComputeCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
+		VkResult submitGraphicsCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex);
 
 		void createSwapChain(AE::WinApplication& winApp);
 		void createImageViews();
@@ -55,8 +56,10 @@ namespace AE {
 		const VkRenderPass& getRenderPass() const { return m_renderPass; }
 		const std::vector<VkSemaphore>& getImageAvailableSemaphores() const { return m_imageAvailableSemaphores; }
 		const std::vector<VkSemaphore>& getRenderFinishedSemaphores() const { return m_renderFinishedSemaphores; }
+		const std::vector<VkSemaphore>& getComputeFinishedSemaphores() const { return m_computeFinishedSemaphores; }
 		const std::vector<VkFence>& getInFlightFences() const { return m_inFlightFences; }
 		const std::vector<VkFence>& getImagesInFlight() const { return m_imagesInFlight; }
+		const std::vector<VkFence>& getComputeInFlight() const { return m_computeInFlightFences; }
 		size_t imageCount() { return m_swapChainImages.size(); }
 
 	private:
@@ -64,8 +67,10 @@ namespace AE {
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, AE::WinApplication& winApp);
 
+		std::vector<VkSemaphore> m_computeFinishedSemaphores;
 		std::vector<VkSemaphore> m_imageAvailableSemaphores;
 		std::vector<VkSemaphore> m_renderFinishedSemaphores;
+		std::vector<VkFence> m_computeInFlightFences;
 		std::vector<VkFence> m_inFlightFences;
 		std::vector<VkFence> m_imagesInFlight;
 		size_t m_currentFrame = 0;

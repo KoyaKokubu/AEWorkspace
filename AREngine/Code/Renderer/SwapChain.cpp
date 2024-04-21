@@ -94,8 +94,8 @@ namespace AE {
 		// VK_SHARING_MODE_EXCLUSIVE: An image is owned by one queue family at a time and ownership must be explicitly transferred before using it in another queue family. This option offers the best performance. 
 		// VK_SHARING_MODE_CONCURRENT: Images can be used across multiple queue families without explicit ownership transfers.
 		QueueFamilyIndices indices = m_devices.findQueueFamilies(m_devices.getPhysicalDevice());
-		uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
-		if (indices.graphicsFamily != indices.presentFamily) {
+		uint32_t queueFamilyIndices[] = { indices.graphicsAndComputeFamily.value(), indices.presentFamily.value() };
+		if (indices.graphicsAndComputeFamily != indices.presentFamily) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -403,6 +403,8 @@ namespace AE {
 	}
 
 	void SwapChain::createSyncObjects() {
+		m_computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+		m_computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -416,6 +418,12 @@ namespace AE {
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Initialize as 1 (signal state) for the first frame
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			if (vkCreateSemaphore(m_devices.getLogicalDevice(), &semaphoreInfo, nullptr, &m_computeFinishedSemaphores[i]) !=
+				VK_SUCCESS ||
+				vkCreateFence(m_devices.getLogicalDevice(), &fenceInfo, nullptr, &m_computeInFlightFences[i])
+				!= VK_SUCCESS) {
+				throw std::runtime_error("failed to create compute synchronization objects for a frame!");
+			}
 			if (vkCreateSemaphore(m_devices.getLogicalDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) !=
 				VK_SUCCESS ||
 				vkCreateSemaphore(m_devices.getLogicalDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) !=
@@ -448,7 +456,31 @@ namespace AE {
 		return result;
 	}
 
-	VkResult SwapChain::submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex) {
+	void SwapChain::submitComputeCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex) {
+		vkWaitForFences(m_devices.getLogicalDevice(), 1, &m_computeInFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
+
+		vkResetFences(m_devices.getLogicalDevice(), 1, &m_computeInFlightFences[m_currentFrame]);
+
+		//vkResetCommandBuffer(buffers[m_currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+
+		// The first three parameters specify which semaphores to wait on before execution begins and in which stage(s) of the pipeline to wait. 
+		// We want to wait with writing colors to the image until it's available, so we're specifying the stage of the graphics pipeline that writes to the color attachment. That means that theoretically the implementation can already start executing our vertex shader and such while the image is not yet available. 
+		// Each entry in the waitStages array corresponds to the semaphore with the same index in pWaitSemaphores.
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = buffers;
+		VkSemaphore signalSemaphores[] = { m_computeFinishedSemaphores[m_currentFrame] };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		// The last parameter references an optional fence that will be signaled when the command buffers finish execution. This allows us to know when it is safe for the command buffer to be reused, thus we want to give it inFlightFence. Now on the next frame, the CPU will wait for this command buffer to finish executing before it records new commands into it.
+		if (vkQueueSubmit(m_devices.getGraphicsComandQueue(), 1, &submitInfo, m_inFlightFences[m_currentFrame]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer!");
+		}
+	}
+
+	VkResult SwapChain::submitGraphicsCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex) {
 		if (m_imagesInFlight[*imageIndex] != VK_NULL_HANDLE) {
 			vkWaitForFences(m_devices.getLogicalDevice(), 1, &m_imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
 		}

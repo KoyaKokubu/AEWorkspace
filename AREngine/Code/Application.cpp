@@ -26,6 +26,10 @@ namespace AE {
 		m_descriptorSetLayouts.emplace_back(
 			DescriptorSetLayout::Builder(m_devices)
 			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
+			// particle descriptors
+			.addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
+			.addBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPUTE_BIT)
+			.addBinding(3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPUTE_BIT)
 			.build()
 		);
 		// texture descriptor set layout
@@ -37,10 +41,14 @@ namespace AE {
 		for (int i = 0; i < m_descriptorSetLayouts.size(); i++) {
 			m_VkDescriptorSetLayouts.emplace_back(m_descriptorSetLayouts[i]->getDescriptorSetLayout());
 		}
+		m_particleSystem.createComputePipelineLayout(m_VkDescriptorSetLayouts);
+		m_particleSystem.createGraphicsPipelineLayout(m_VkDescriptorSetLayouts[0]);
 		m_simpleRenderSystem.createPipelineLayout(m_VkDescriptorSetLayouts[0]);
 		m_simpleRenderSystem.createPipelineLayoutWithTexture(m_VkDescriptorSetLayouts);
 		m_pointLightSystem.createPipelineLayout(m_VkDescriptorSetLayouts[0]);
 		m_renderer.recreateSwapChain();
+		m_particleSystem.createComputePipeline(m_renderer.getSwapChainRenderPass());
+		m_particleSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
 		m_simpleRenderSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
 		m_simpleRenderSystem.createGraphicsPipelineWithTexture(m_renderer.getSwapChainRenderPass());
 		m_pointLightSystem.createGraphicsPipeline(m_renderer.getSwapChainRenderPass());
@@ -49,6 +57,9 @@ namespace AE {
 			DescriptorPool::Builder(m_devices)
 			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.build();
 		m_texturePool =
 			DescriptorPool::Builder(m_devices)
@@ -56,11 +67,14 @@ namespace AE {
 			.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT)
 			.build();
 		loadGameObjects();
+		m_particleSystem.loadPointCloud();
 		m_renderer.createCommandBuffers();
 	}
 
 	void Application::mainLoop() {
+		std::vector<std::vector<VkDescriptorSet>> descriptorSets(MAX_FRAMES_IN_FLIGHT);
 		std::vector<std::unique_ptr<Buffer>> uboBuffers(MAX_FRAMES_IN_FLIGHT);
+		std::vector<std::unique_ptr<Buffer>> particleUBObuffers(MAX_FRAMES_IN_FLIGHT);
 		for (int i = 0; i < uboBuffers.size(); i++) {
 			uboBuffers[i] = std::make_unique<Buffer>(
 				m_devices,
@@ -70,14 +84,34 @@ namespace AE {
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
 			);
 			uboBuffers[i]->map();
-		}
 
-		std::vector<std::vector<VkDescriptorSet>> descriptorSets(MAX_FRAMES_IN_FLIGHT);
-		for (int i = 0; i < descriptorSets.size(); i++) {
-			descriptorSets[i].resize(descriptorSets.size());
+			particleUBObuffers[i] = std::make_unique<Buffer>(
+				m_devices,
+				sizeof(ParticleUBO),
+				1,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+			);
+			particleUBObuffers[i]->map();
+
+			VkDescriptorBufferInfo particleUBObufferInfo = particleUBObuffers[i]->descriptorInfo();
+			VkDescriptorBufferInfo storageBufferInfoLastFrame
+				= m_particleSystem
+				.getPointCloud()
+				.getSBOObuffers()[(MAX_FRAMES_IN_FLIGHT + i - 1) % MAX_FRAMES_IN_FLIGHT]->descriptorInfo();
+			VkDescriptorBufferInfo storageBufferInfoCurrentFrame
+				= m_particleSystem
+				.getPointCloud()
+				.getSBOObuffers()[i]->descriptorInfo();
+
+			// i: frame , j: descriptor set number
+			descriptorSets[i].resize(m_descriptorSetLayouts.size());
 			VkDescriptorBufferInfo bufferInfo = uboBuffers[i]->descriptorInfo();
 			DescriptorWriter(*m_descriptorSetLayouts[0], *m_globalPool)
 				.writeBuffer(0, &bufferInfo)
+				.writeBuffer(1, &particleUBObufferInfo)
+				.writeBuffer(2, &storageBufferInfoLastFrame)
+				.writeBuffer(3, &storageBufferInfoCurrentFrame)
 				.build(descriptorSets[i][0]);
 		}
 
@@ -92,11 +126,9 @@ namespace AE {
 			imageInfo.sampler = obj.m_model->m_texture->getSampler();
 		}
 		for (int i = 0; i < descriptorSets.size(); i++) {
-			for (int j = 1; j < m_descriptorSetLayouts.size(); j++) {
-				DescriptorWriter(*m_descriptorSetLayouts[j], *m_texturePool)
-					.writeImage(0, &imageInfo)
-					.build(descriptorSets[i][j]);
-			}
+			DescriptorWriter(*m_descriptorSetLayouts[1], *m_texturePool)
+				.writeImage(0, &imageInfo)
+				.build(descriptorSets[i][1]);
 		}
 
 		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
@@ -142,9 +174,17 @@ namespace AE {
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
 
+				ParticleUBO particleUBO{};
+				particleUBO.deltaTime = 1.f;
+				particleUBObuffers[frameIndex]->writeToBuffer(&particleUBO);
+				particleUBObuffers[frameIndex]->flush();
+
+				// Compute
+				m_particleSystem.dispatch(frameInfo);
+
 				// render
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
-
+				m_particleSystem.renderPointCloud(frameInfo);
 				// render solid objects first, then render any semi-transparent objects
 				m_simpleRenderSystem.renderGameObjects(frameInfo);
 				m_pointLightSystem.render(frameInfo);
@@ -160,6 +200,7 @@ namespace AE {
 		m_renderer.cleanupSwapChain();
 		m_simpleRenderSystem.cleanupGraphicsPipeline();
 		m_pointLightSystem.cleanupGraphicsPipeline();
+		m_particleSystem.cleanupParticleSystem();
 		vkDestroyCommandPool(m_devices.getLogicalDevice(), m_devices.getCommandPool(), nullptr);
 		//m_globalSetLayout = nullptr; // call destructor
 		for (int i = 0; i < m_descriptorSetLayouts.size(); i++) {

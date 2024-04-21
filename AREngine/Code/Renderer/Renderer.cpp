@@ -77,7 +77,9 @@ namespace AE {
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			vkDestroySemaphore(m_devices.getLogicalDevice(), m_swapChain->getImageAvailableSemaphores()[i], nullptr);
 			vkDestroySemaphore(m_devices.getLogicalDevice(), m_swapChain->getRenderFinishedSemaphores()[i], nullptr);
+			vkDestroySemaphore(m_devices.getLogicalDevice(), m_swapChain->getComputeFinishedSemaphores()[i], nullptr);
 			vkDestroyFence(m_devices.getLogicalDevice(), m_swapChain->getInFlightFences()[i], nullptr);
+			vkDestroyFence(m_devices.getLogicalDevice(), m_swapChain->getComputeInFlight()[i], nullptr);
 		}
 		for (auto framebuffer : m_swapChain->getFrameBuffers()) {
 			vkDestroyFramebuffer(m_devices.getLogicalDevice(), framebuffer, nullptr);
@@ -132,7 +134,7 @@ namespace AE {
 			throw std::runtime_error("failed to record command buffer!");
 		}
 
-		VkResult result = m_swapChain->submitCommandBuffers(&commandBuffer, &m_currentImageIndex);
+		VkResult result = m_swapChain->submitGraphicsCommandBuffers(&commandBuffer, &m_currentImageIndex);
 		// VK_SUBOPTIMAL_KHR : swapchain no longer matches the surface properties exactly, but can still be used to present to the surface successfully.
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_winApp.wasWindowResized()) {
 			m_winApp.resetWindowResizedFlag();

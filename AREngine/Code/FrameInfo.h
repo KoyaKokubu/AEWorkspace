@@ -22,6 +22,11 @@ namespace AE {
 		int numLights;
 	};
 
+	// Global Uniform Buffer Object
+	struct ParticleUBO {
+		float deltaTime = 0.f;
+	};
+
 	struct FrameInfo {
 		int m_frameIndex;
 		float m_frameTime;

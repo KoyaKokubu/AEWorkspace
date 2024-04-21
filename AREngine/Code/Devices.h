@@ -20,11 +20,11 @@ namespace AE {
 	struct QueueFamilyIndices {
 		// It's not really possible to use a magic value to indicate the nonexistence of a queue family, since any value of uint32_t could in theory be a valid queue family index including 0.
 		// std::optional is a wrapper that contains no value until you assign something to it. At any point you can query if it contains a value or not by calling its has_value() member function.
-		std::optional<uint32_t> graphicsFamily;
+		std::optional<uint32_t> graphicsAndComputeFamily;
 		std::optional<uint32_t> presentFamily;
 
 		bool isComplete() {
-			return graphicsFamily.has_value() && presentFamily.has_value();
+			return graphicsAndComputeFamily.has_value() && presentFamily.has_value();
 		}
 	};
 
@@ -73,7 +73,8 @@ namespace AE {
 		VkDevice& getLogicalDevice() { return m_device; }
 		VkSurfaceKHR& getSurface() { return m_surface; }
 		VkCommandPool& getCommandPool() { return m_commandPool; }
-		VkQueue& getGraphicsQueue() { return m_graphicsQueue; }
+		VkQueue& getGraphicsQueue() { return m_graphicsComputeQueue; }
+		VkQueue& getGraphicsComandQueue() { return m_graphicsComputeQueue; }
 		VkQueue& getPresentQueue() { return m_presentQueue; }
 		VkSampleCountFlagBits getMSAAsamples() { return m_msaaSamples; }
 
@@ -95,7 +96,7 @@ namespace AE {
 		VkPhysicalDeviceProperties m_properties;
 		// logical device: not directly interact with instances.
 		VkDevice m_device;
-		VkQueue m_graphicsQueue;
+		VkQueue m_graphicsComputeQueue;
 		VkQueue m_presentQueue;
 		VkSurfaceKHR m_surface;
 		VkCommandPool m_commandPool;

@@ -45,6 +45,7 @@ namespace AE {
         void createIndexBuffers(const std::vector<uint32_t>& indices);
         void bind(VkCommandBuffer commandBuffer);
         void draw(VkCommandBuffer commandBuffer);
+        void instancingDraw(VkCommandBuffer commandBuffer);
 
         void createTexture(const char* filePath);
 

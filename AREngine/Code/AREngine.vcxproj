@@ -167,12 +167,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shaders\compile_point.bat" />
-    <None Include="Shaders\compile_simple_texture.bat" />
-    <None Include="Shaders\point_light.frag" />
-    <None Include="Shaders\point_light.vert" />
-    <None Include="Shaders\simple_shader_with_texture.frag" />
-    <None Include="Shaders\simple_shader_with_texture.vert" />
+    <None Include="Shaders\ParticleSystemShader\compile_particle_system.bat" />
+    <None Include="Shaders\ParticleSystemShader\particle_compute.comp.spv" />
+    <None Include="Shaders\ParticleSystemShader\particle_shader.frag" />
+    <None Include="Shaders\ParticleSystemShader\particle_shader.vert" />
+    <None Include="Shaders\PointLightShader\compile_point.bat" />
+    <None Include="Shaders\TextureShader\compile_simple_texture.bat" />
+    <None Include="Shaders\ParticleSystemShader\particle_compute.comp" />
+    <None Include="Shaders\PointLightShader\point_light.frag" />
+    <None Include="Shaders\PointLightShader\point_light.vert" />
+    <None Include="Shaders\TextureShader\simple_shader_with_texture.frag" />
+    <None Include="Shaders\TextureShader\simple_shader_with_texture.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -184,6 +189,9 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="ParticleSystem\ComputePipeline.h" />
+    <ClInclude Include="ParticleSystem\ParticleSystem.h" />
+    <ClInclude Include="ParticleSystem\PointCloud.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="RenderSystem\PointLightSystem.h" />
     <ClInclude Include="RenderSystem\SimpleRenderSystem.h" />
@@ -207,6 +215,9 @@
     <ClCompile Include="Devices.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="ParticleSystem\ComputePipeline.cpp" />
+    <ClCompile Include="ParticleSystem\ParticleSystem.cpp" />
+    <ClCompile Include="ParticleSystem\PointCloud.cpp" />
     <ClCompile Include="RenderSystem\GraphicsPipeline.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
@@ -219,9 +230,9 @@
     <ClCompile Include="Renderer\WinApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\simple_shader.vert" />
-    <Text Include="Shaders\simple_shader.frag" />
-    <Text Include="Shaders\compile_simple.bat" />
+    <Text Include="Shaders\SimpleShader\simple_shader.vert" />
+    <Text Include="Shaders\SimpleShader\simple_shader.frag" />
+    <Text Include="Shaders\SimpleShader\compile_simple.bat" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Models\colored_cube.obj">

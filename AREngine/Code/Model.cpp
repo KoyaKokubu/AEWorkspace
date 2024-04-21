@@ -103,21 +103,6 @@ namespace AE {
         m_hasTexture = true;
     }
 
-    void Model::draw(VkCommandBuffer commandBuffer) {
-        if (m_hasIndexBuffer) {
-            // Parameters: (commandbuffer, indexCount, instanceCount, firstVertex, vertex offset, firstInstance)
-            vkCmdDrawIndexed(commandBuffer, m_indexCount, 1, 0, 0, 0);
-        }
-        else {
-            // vkCmdDraw(m_commandBuffers[i], vertexCount, instanceCount, firstVertex, firstInstance);
-            // 2. vertexCount: Even though we don't have a vertex buffer, we technically still have 3 vertices to draw.
-            // 3. instanceCount: Used for instanced rendering, use 1 if you're not doing that.
-            // 4. firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
-            // 5. firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
-            vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
-        }
-    }
-
     // Record to command buffer to bind one vertex buffer starting at binding zero
     void Model::bind(VkCommandBuffer commandBuffer) {
         // We can add multiple bindings by additional elements to the arrays below.
@@ -128,6 +113,36 @@ namespace AE {
         if (m_hasIndexBuffer) {
             // Third parameter: initial offset
             vkCmdBindIndexBuffer(commandBuffer, m_indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
+        }
+    }
+
+    void Model::draw(VkCommandBuffer commandBuffer) {
+        if (m_hasIndexBuffer) {
+            // Parameters: (commandbuffer, indexCount, instanceCount, firstVertex, vertex offset, firstInstance)
+            vkCmdDrawIndexed(commandBuffer, m_indexCount, 1, 0, 0, 0);
+        }
+        else {
+            // vkCmdDraw(m_commandBuffers[i], vertexCount, instanceCount, firstVertex, firstInstance);
+            // 2. vertexCount
+            // 3. instanceCount: Used for instanced rendering, use 1 if you're not doing that.
+            // 4. firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
+            // 5. firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
+            vkCmdDraw(commandBuffer, m_vertexCount, 1, 0, 0);
+        }
+    }
+
+    void Model::instancingDraw(VkCommandBuffer commandBuffer) {
+        // vkCmdDraw(m_commandBuffers[i], vertexCount, instanceCount, firstVertex, firstInstance);
+        // 2. vertexCount
+        // 3. instanceCount: Used for instanced rendering, use 1 if you're not doing that.
+        // 4. firstVertex : Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
+        // 5. firstInstance : Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
+        //vkCmdDraw(commandBuffer, 6, 1, 0, 0);
+        if (m_hasIndexBuffer) {
+            vkCmdDrawIndexed(commandBuffer, m_indexCount, 1, 0, 0, 0);
+        }
+        else {
+            vkCmdDraw(commandBuffer, 6, m_vertexCount, 0, 0);
         }
     }
 
