@@ -95,8 +95,13 @@ namespace AE {
 		}
 		VkPhysicalDeviceFeatures supportedFeatures;
 		vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+		m_deviceFeatures = supportedFeatures;
 #ifndef SPECIFIC_SUITABLE_DEVICE
-		return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+		return indices.isComplete()
+			&& extensionsSupported 
+			&& swapChainAdequate 
+			&& supportedFeatures.samplerAnisotropy
+			&& supportedFeatures.multiDrawIndirect;
 #else
 		VkPhysicalDeviceProperties deviceProperties;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -181,6 +186,7 @@ namespace AE {
 		// These are the features that we queried support for with vkGetPhysicalDeviceFeatures in the previous chapter, like geometry shaders. Right now we don't need anything special, so we can simply define it and leave everything to VK_FALSE. We'll come back to this structure once we're about to start doing more interesting things with Vulkan.
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.multiDrawIndirect = VK_TRUE;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

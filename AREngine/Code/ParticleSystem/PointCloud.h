@@ -6,8 +6,9 @@
 #include "../Model.h"
 #include "../FrameInfo.h"
 
-#define POINT_CLOUD_NUM 8
-#define PARTICLE_NUM 1000
+#define POINT_CLOUD_NUM 10
+#define PARTICLE_NUM 10000
+#define INSTANCING_INDIRECT_DRAW
 
 namespace AE {
 
@@ -45,11 +46,13 @@ namespace AE {
 
         PointCloud(Devices& devices) : m_devices{ devices } {};
         void cleanUpPointCloud() {
-            m_sbooBuffer.resize(0);
-            m_particles.resize(0);
+            m_indirectCommands.clear();
+            m_sbooBuffer.clear();
+            m_particles.clear();
             m_particleModel = nullptr;
             m_vertexBuffer = nullptr;
             m_indexBuffer = nullptr;
+            m_indirectCommandsBuffer.clear();
         };
 
         PointCloud(const PointCloud& pointcCloud) = delete;
@@ -60,19 +63,25 @@ namespace AE {
         void createIndexBuffers();
         void createParticleModel();
         void createSBOObuffers();
+        void createIndirectBuffers();
         void bind(FrameInfo& frameInfo);
-        void draw(VkCommandBuffer commandBuffer);
+        void draw(FrameInfo& frameInfo);
 
         std::vector<std::unique_ptr<Buffer>>& getSBOObuffers() { return m_sbooBuffer; };
+        std::vector<std::unique_ptr<Buffer>>& getIndirectCommandsBuffers() { return m_indirectCommandsBuffer; };
 
     private:
         Devices& m_devices;
         std::vector<std::unique_ptr<Buffer>> m_sbooBuffer;
         std::unique_ptr<Buffer> m_vertexBuffer;
-        uint32_t m_vertexCount;
         std::unique_ptr<Buffer> m_indexBuffer;
         uint32_t m_indexCount;
+        std::vector<std::unique_ptr<Buffer>> m_indirectCommandsBuffer;
+        std::vector<VkDrawIndexedIndirectCommand> m_indirectCommands;
+        uint32_t m_indirectDrawCount;
+
         std::vector<ParticleVertex> m_vertices;
+        uint32_t m_vertexCount;
         std::vector<ParticleInstance> m_particles;
         uint32_t m_particleCount;
         std::unique_ptr<Model> m_particleModel;

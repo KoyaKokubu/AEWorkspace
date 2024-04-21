@@ -36,7 +36,6 @@ namespace AE {
             {1.f, 1.f, 0.f},
             {1.f, -1.f, 0.f}
         };
-        //{ 0, 2, 1, 2, 0, 3}
 
         for (int i = 0; i < vertices.size(); i++) {
             m_vertices.emplace_back(vertices[i].x, vertices[i].y, vertices[i].z);
@@ -131,6 +130,48 @@ namespace AE {
         }
     }
 
+    void PointCloud::createIndirectBuffers() {
+        m_indirectCommands.clear();
+
+        //int instanceNum = POINT_CLOUD_NUM * PARTICLE_NUM;
+        for (int i=0; i < POINT_CLOUD_NUM; i++) {
+            VkDrawIndexedIndirectCommand indirectCmd{};
+            indirectCmd.instanceCount = PARTICLE_NUM;
+            indirectCmd.firstInstance = i * PARTICLE_NUM;
+            indirectCmd.firstIndex = 0;
+            indirectCmd.indexCount = m_indexCount;
+
+            m_indirectCommands.push_back(indirectCmd);
+        }
+
+        m_indirectDrawCount = static_cast<uint32_t>(m_indirectCommands.size());
+        VkDeviceSize bufferSize = sizeof(m_indirectCommands[0]) * m_indirectDrawCount;
+        uint32_t elementSize = sizeof(m_indirectCommands[0]);
+
+        Buffer stagingBuffer{
+            m_devices,
+            elementSize,
+            m_indirectDrawCount,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        };
+
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void*)m_indirectCommands.data());
+
+        m_indirectCommandsBuffer.resize(MAX_FRAMES_IN_FLIGHT);
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            m_indirectCommandsBuffer[i] = std::make_unique<Buffer>(
+                m_devices,
+                elementSize,
+                m_indirectDrawCount,
+                VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            );
+            m_devices.copyBuffer(stagingBuffer.getBuffer(), m_indirectCommandsBuffer[i]->getBuffer(), bufferSize);
+        }
+    }
+
     // Record to command buffer to bind one vertex buffer starting at binding zero
     void PointCloud::bind(FrameInfo& frameInfo) {
         // We can add multiple bindings by additional elements to the arrays below.
@@ -140,9 +181,39 @@ namespace AE {
         vkCmdBindIndexBuffer(frameInfo.m_commandBuffer, m_indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
     }
 
-    void PointCloud::draw(VkCommandBuffer commandBuffer) {
+    void PointCloud::draw(FrameInfo& frameInfo) {
+#ifdef INSTANCING_INDIRECT_DRAW
+        // Indirect Draw
+        // If the multi draw feature is supported:
+        // One draw call for an arbitrary number of objects
+        // Index offsets and instance count are taken from the indirect buffer
+        if (m_devices.getDeviceFeatures().multiDrawIndirect) {
+            vkCmdDrawIndexedIndirect(
+                frameInfo.m_commandBuffer,
+                m_indirectCommandsBuffer[frameInfo.m_frameIndex]->getBuffer(),
+                0,
+                m_indirectDrawCount,
+                sizeof(VkDrawIndexedIndirectCommand)
+            );
+        }
+        else {
+            // If multi draw is not available, we must issue separate draw commands
+            for (auto j = 0; j < m_indirectCommands.size(); j++)
+            {
+                vkCmdDrawIndexedIndirect(
+                    frameInfo.m_commandBuffer,
+                    m_indirectCommandsBuffer[frameInfo.m_frameIndex]->getBuffer(),
+                    j * sizeof(VkDrawIndexedIndirectCommand),
+                    1,
+                    sizeof(VkDrawIndexedIndirectCommand)
+                );
+            }
+        }
+#else
+        // Instancing Draw
         //m_particleModel->instancingDraw(commandBuffer);
-        vkCmdDrawIndexed(commandBuffer, m_indexCount, m_particleCount, 0, 0, 0);
+        vkCmdDrawIndexed(frameInfo.m_commandBuffer, m_indexCount, m_particleCount, 0, 0, 0);
+#endif
     }
 
     // binding(s) corresponded to a single vertex buffer

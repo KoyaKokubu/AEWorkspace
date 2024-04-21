@@ -32,6 +32,13 @@ namespace AE {
 			.addBinding(3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_COMPUTE_BIT)
 			.build()
 		);
+		// Indirect descriptor set layout
+		m_descriptorSetLayouts.emplace_back(
+			DescriptorSetLayout::Builder(m_devices)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
+			.addBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
+			.build()
+		);
 		// texture descriptor set layout
 		m_descriptorSetLayouts.emplace_back(
 			DescriptorSetLayout::Builder(m_devices)
@@ -58,6 +65,12 @@ namespace AE {
 			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
+			.build();
+		m_indirectPool =
+			DescriptorPool::Builder(m_devices)
+			.setMaxSets(MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, MAX_FRAMES_IN_FLIGHT)
 			.build();
@@ -113,6 +126,21 @@ namespace AE {
 				.writeBuffer(2, &storageBufferInfoLastFrame)
 				.writeBuffer(3, &storageBufferInfoCurrentFrame)
 				.build(descriptorSets[i][0]);
+
+			// Indirect Descriptor Set
+			VkDescriptorBufferInfo indirectBufferInfoLastFrame
+				= m_particleSystem
+				.getPointCloud()
+				.getIndirectCommandsBuffers()[(MAX_FRAMES_IN_FLIGHT + i - 1) % MAX_FRAMES_IN_FLIGHT]->descriptorInfo();
+			VkDescriptorBufferInfo indirectBufferInfoCurrentFrame
+				= m_particleSystem
+				.getPointCloud()
+				.getIndirectCommandsBuffers()[i]->descriptorInfo();
+
+			DescriptorWriter(*m_descriptorSetLayouts[1], *m_indirectPool)
+				.writeBuffer(0, &indirectBufferInfoLastFrame)
+				.writeBuffer(1, &indirectBufferInfoCurrentFrame)
+				.build(descriptorSets[i][1]);
 		}
 
 		VkDescriptorImageInfo imageInfo{};
@@ -126,9 +154,9 @@ namespace AE {
 			imageInfo.sampler = obj.m_model->m_texture->getSampler();
 		}
 		for (int i = 0; i < descriptorSets.size(); i++) {
-			DescriptorWriter(*m_descriptorSetLayouts[1], *m_texturePool)
+			DescriptorWriter(*m_descriptorSetLayouts[2], *m_texturePool)
 				.writeImage(0, &imageInfo)
-				.build(descriptorSets[i][1]);
+				.build(descriptorSets[i][2]);
 		}
 
 		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
@@ -145,10 +173,13 @@ namespace AE {
 			std::chrono::steady_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - prevTime).count();
 			prevTime = currentTime;
+			float passedTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - beginTime).count();
+
+			/*float fps = 1.f / frameTime;
+			printf("fps: %f\n", fps);*/
 
 			m_cameraController.moveInPlaneXZ(m_winApp.getWindowPointer(), frameTime, viewerObject);
 			m_camera.setViewYXZ(viewerObject.m_transformMat.m_translation, viewerObject.m_transformMat.m_rotation);
-			float passedTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - beginTime).count();
 
 			float aspect = m_renderer.getAspectRatio();
 			//m_camera.setOrthographicProjection(-aspect, aspect, -1, 1, -1, 1);
@@ -191,8 +222,8 @@ namespace AE {
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
 				m_particleSystem.renderPointCloud(frameInfo);
 				// render solid objects first, then render any semi-transparent objects
-				//m_simpleRenderSystem.renderGameObjects(frameInfo);
-				//m_pointLightSystem.render(frameInfo);
+				m_simpleRenderSystem.renderGameObjects(frameInfo);
+				m_pointLightSystem.render(frameInfo);
 				
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();
@@ -207,13 +238,13 @@ namespace AE {
 		m_pointLightSystem.cleanupGraphicsPipeline();
 		m_particleSystem.cleanupParticleSystem();
 		vkDestroyCommandPool(m_devices.getLogicalDevice(), m_devices.getCommandPool(), nullptr);
-		//m_globalSetLayout = nullptr; // call destructor
 		for (int i = 0; i < m_descriptorSetLayouts.size(); i++) {
 			m_VkDescriptorSetLayouts[i] = nullptr;
 			m_descriptorSetLayouts[i] = nullptr;
 		}
 		m_globalPool = nullptr; // call destructor
 		m_texturePool = nullptr; // call destructor
+		m_indirectPool = nullptr; // call destructor
 		m_gameObjects.clear(); // call destructor
 		vkDestroyDevice(m_devices.getLogicalDevice(), nullptr);
 		if (m_validLayers.enableValidationLayers) {

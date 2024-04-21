@@ -137,7 +137,7 @@ namespace AE {
 			   // If we want to bind a new set and it can be added to the end,
 			   // existing sets would not be rebinded by setting the last index here. 
 			   // This is why frequently shared sets should occupy the earlier set numbers.
-			frameInfo.m_descriptorSets.size(), // descriptor set count
+			3, // descriptor set count
 			&frameInfo.m_descriptorSets[0],
 			0, // can be used for specifying dynamic offsets
 			nullptr // can be used for specifying dynamic offsets

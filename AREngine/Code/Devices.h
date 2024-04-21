@@ -77,6 +77,7 @@ namespace AE {
 		VkQueue& getGraphicsComandQueue() { return m_graphicsComputeQueue; }
 		VkQueue& getPresentQueue() { return m_presentQueue; }
 		VkSampleCountFlagBits getMSAAsamples() { return m_msaaSamples; }
+		VkPhysicalDeviceFeatures& getDeviceFeatures() { return m_deviceFeatures; }
 
 	private:
 		bool isDeviceSuitable(VkPhysicalDevice device);
@@ -101,5 +102,6 @@ namespace AE {
 		VkSurfaceKHR m_surface;
 		VkCommandPool m_commandPool;
 		VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT; // msaa: Multisample anti-aliasing
+		VkPhysicalDeviceFeatures m_deviceFeatures;
 	};
 } // namespace AE

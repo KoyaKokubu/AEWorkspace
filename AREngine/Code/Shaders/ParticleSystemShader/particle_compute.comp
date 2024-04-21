@@ -11,12 +11,27 @@ struct Particle {
 	vec4 velocity;
 };
 
-layout (std140, set = 0, binding = 2) readonly buffer ParticleSSBOIn {
+layout (std140, set = 0, binding = 2) readonly buffer ParticleSSBOin {
 	Particle particlesIn[ ];
 };
 
-layout (std140, set = 0, binding = 3) buffer ParticleSSBOOUT {
+layout (std140, set = 0, binding = 3) buffer ParticleSSBOout {
 	Particle particlesOut[ ];
+};
+
+struct IndirectDrawCommand {
+	uint instanceCount;
+	uint firstInstance;
+	uint firstIndex;
+	uint indexCount;
+};
+
+layout (std140, set = 1, binding = 0) readonly buffer IndirectSSBOin {
+	IndirectDrawCommand drawCommandIn[ ];
+};
+
+layout (std140, set = 1, binding = 1) writeonly buffer IndirectSSBOout {
+	IndirectDrawCommand drawCommandOut[ ];
 };
 
 layout (local_size_x = 200, local_size_y = 1, local_size_z = 1) in;
@@ -31,4 +46,9 @@ void main() {
 	particlesOut[index].position = particleIn.position + dir * ubo.deltaTime;
 	particlesOut[index].velocity = dir;
 	// particlesOut[index].position = ubo.transformMat * particleIn.position;
+	
+	drawCommandOut[index].instanceCount = drawCommandIn[index].instanceCount;
+	drawCommandOut[index].firstInstance = drawCommandIn[index].firstInstance;
+	drawCommandOut[index].firstIndex = drawCommandIn[index].firstIndex;
+	drawCommandOut[index].indexCount = drawCommandIn[index].indexCount;
 }

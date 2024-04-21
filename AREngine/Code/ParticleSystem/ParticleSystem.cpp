@@ -11,6 +11,7 @@ namespace AE {
 		const float pDeviation(0.3f);
 		m_pointCloud.createVertexBuffers();
 		m_pointCloud.createIndexBuffers();
+		m_pointCloud.createIndirectBuffers();
 		//m_pointCloud.createParticleModel();
 		m_pointCloud.generatePointCloud(pMean, pDeviation);
 		m_pointCloud.createSBOObuffers();
@@ -82,7 +83,7 @@ namespace AE {
 			VK_PIPELINE_BIND_POINT_COMPUTE, 
 			m_computePipelineLayout, 
 			0, 
-			1,
+			2,
 			&frameInfo.m_descriptorSets[0],
 			0, 
 			nullptr
@@ -111,7 +112,7 @@ namespace AE {
 			nullptr // can be used for specifying dynamic offsets
 		);
 		m_pointCloud.bind(frameInfo);
-		m_pointCloud.draw(frameInfo.m_commandBuffer);
+		m_pointCloud.draw(frameInfo);
 	}
 
 } // namespace AE
