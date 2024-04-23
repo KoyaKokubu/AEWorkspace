@@ -20,14 +20,14 @@ layout (set = 0, binding = 0) uniform GlobalUbo {
 
 const float M_PI = 3.1415926538;
 
-void main() {
-	// outColor = fragColor;
-	
+void main() {	
 	float distance = sqrt(dot(fragOffset, fragOffset));
 	if (distance >= 1) {
 		discard;
 	}
+	
+	outColor = fragColor;
 
-	float cosDis = 0.5 * (cos(distance * M_PI) + 1.0);
-	outColor = vec4(fragColor.xyz + cosDis, cosDis);
+	//float cosDis = 0.5 * (cos(distance * M_PI) + 1.0);
+	//outColor = vec4(fragColor.xyz + cosDis, cosDis);
 }

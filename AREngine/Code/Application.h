@@ -16,6 +16,8 @@
 #include "Descriptors.h"
 #include "ParticleSystem/ParticleSystem.h"
 
+#include "3Dvision/RGBD/RGBDvision.h"
+
 namespace AE {
 
 	class Application {
@@ -58,6 +60,8 @@ namespace AE {
 		GameObject::Map m_gameObjects;
 		Camera m_camera{};
 		KeyboardMovementController m_cameraController{};
+		RGBDvision m_3Dvision{ m_particleSystem };
+		//RGBDvision m_3Dvision{ m_camera, m_particleSystem };
 	};
 
 } // namespace AE

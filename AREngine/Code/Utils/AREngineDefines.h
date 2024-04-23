@@ -1,6 +1,6 @@
 #pragma once
 
-#define APPLICATION_NAME "Vulkan Application"
+#define APPLICATION_NAME "AR Engine"
 
 #define WINDOWS_OS
 //#define ADD_DEBUG

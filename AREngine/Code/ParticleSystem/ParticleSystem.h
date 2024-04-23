@@ -27,6 +27,12 @@ namespace AE {
 		ParticleSystem& operator=(ParticleSystem&&) = delete;
 
 		void loadPointCloud();
+		void setPointCloud(
+			int pointCloudNum, 
+			std::vector<int> particleNum,
+			std::vector<std::vector<glm::vec4>> pointCloud_position,
+			std::vector<std::vector<glm::vec4>> pointCloud_color
+		);
 		void createComputePipelineLayout(std::vector<VkDescriptorSetLayout> computeDescriptorSetLayouts);
 		void createComputePipeline(VkRenderPass renderPass);
 		void createGraphicsPipelineLayout(VkDescriptorSetLayout globalDescriptorSetLayout);

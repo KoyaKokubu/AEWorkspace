@@ -5,22 +5,33 @@
 
 namespace AE {
 
-    void PointCloud::generatePointCloud(float mean, float deviation) {
+    void PointCloud::generatePointCloud(int pointCloudNum, int particleNum, float mean, float deviation) {
         const float range(1.5f);
         std::mt19937 rn(54321);
         std::uniform_real_distribution center(-range, range);
         std::uniform_real_distribution uniform(0.0f, 2.0f);
         std::normal_distribution normal(mean, deviation);
-        m_particles.reserve(POINT_CLOUD_NUM * PARTICLE_NUM);
-        for (int i = 0; i < POINT_CLOUD_NUM; ++i) {
+        m_particles.reserve(pointCloudNum * particleNum);
+        for (int i = 0; i < pointCloudNum; ++i) {
             const float cx(center(rn)), cy(center(rn)), cz(center(rn));
-            for (int j = 0; j < PARTICLE_NUM; ++j) {
+            for (int j = 0; j < particleNum; ++j) {
                 const float cp(uniform(rn) - 1.0f);
                 const float sp(sqrt(1.0f - cp * cp));
                 const float t(3.1415927f * uniform(rn));
                 const float ct(cos(t)), st(sin(t));
                 const float r(normal(rn));
                 m_particles.emplace_back(r * sp * ct + cx, r * sp * st + cy, r * cp + cz);
+            }
+        }
+    }
+
+    void PointCloud::setPointCloud(
+        std::vector<std::vector<glm::vec4>> pointCloud_position,
+        std::vector<std::vector<glm::vec4>> pointCloud_color)
+    {
+        for (int i = 0; i < pointCloud_position.size(); ++i) {
+            for (int j = 0; j < pointCloud_position[i].size(); ++j) {
+                m_particles.emplace_back(pointCloud_position[i][j], pointCloud_color[i][j]);
             }
         }
     }
@@ -130,14 +141,14 @@ namespace AE {
         }
     }
 
-    void PointCloud::createIndirectBuffers() {
+    void PointCloud::createIndirectBuffers(int pointCloudNum, std::vector<int> particleNum) {
         m_indirectCommands.clear();
 
         //int instanceNum = POINT_CLOUD_NUM * PARTICLE_NUM;
-        for (int i=0; i < POINT_CLOUD_NUM; i++) {
+        for (int i=0; i < pointCloudNum; i++) {
             VkDrawIndexedIndirectCommand indirectCmd{};
-            indirectCmd.instanceCount = PARTICLE_NUM;
-            indirectCmd.firstInstance = i * PARTICLE_NUM;
+            indirectCmd.instanceCount = particleNum[i];
+            indirectCmd.firstInstance = i * particleNum[i];
             indirectCmd.firstIndex = 0;
             indirectCmd.indexCount = m_indexCount;
 

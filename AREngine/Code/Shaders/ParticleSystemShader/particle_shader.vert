@@ -33,13 +33,14 @@ layout (std140, set = 0, binding = 3) readonly buffer ParticleSSBOin {
 const float RADIUS = 0.01;
 
 void main() {	
-	//gl_PointSize = 1.0;
-	//gl_Position = ubo.projection * ubo.view * vec4(PointCloud.particlesIn[gl_InstanceIndex].position.xyz, 1.0);
-	float distance = dot(PointCloud.particlesIn[gl_InstanceIndex].position.xyz, PointCloud.particlesIn[gl_InstanceIndex].position.xyz);
-	float colorX = PointCloud.particlesIn[gl_InstanceIndex].position.x / distance;
-	float colorY = PointCloud.particlesIn[gl_InstanceIndex].position.y / distance;
+	////gl_PointSize = 1.0;
+	////gl_Position = ubo.projection * ubo.view * vec4(PointCloud.particlesIn[gl_InstanceIndex].position.xyz, 1.0);
+	//float distance = dot(PointCloud.particlesIn[gl_InstanceIndex].position.xyz, PointCloud.particlesIn[gl_InstanceIndex].position.xyz);
+	//float colorX = PointCloud.particlesIn[gl_InstanceIndex].position.x / distance;
+	//float colorY = PointCloud.particlesIn[gl_InstanceIndex].position.y / distance;
 	
-	fragColor = vec4(colorX, colorY, 1.0, 1.0); // PointCloud.particlesIn[gl_InstanceIndex].color;
+	//fragColor = vec4(colorX, colorY, 1.0, 1.0); // PointCloud.particlesIn[gl_InstanceIndex].color;
+	fragColor = PointCloud.particlesIn[gl_InstanceIndex].color;
 	
 	fragOffset = inPosition.xy;
 	vec3 cameraRightWorld = { ubo.view[0][0], ubo.view[1][0], ubo.view[2][0] };

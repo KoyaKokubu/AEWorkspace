@@ -6,8 +6,6 @@
 #include "../Model.h"
 #include "../FrameInfo.h"
 
-#define POINT_CLOUD_NUM 10
-#define PARTICLE_NUM 10000
 #define INSTANCING_INDIRECT_DRAW
 
 namespace AE {
@@ -29,10 +27,20 @@ namespace AE {
             ParticleInstance(
                 float px, float py, float pz,
                 float cx = 1.f, float cy = 1.f, float cz = 1.f, float ca = 1.0f,
-                float vx = 1.f, float vy = 0.f, float vz = 1.f
+                float vx = 0.f, float vy = 0.f, float vz = 1.f
             )
                 : position{ px, py, pz, 1.0f }
                 , color{ cx, cy, cz, ca }
+                , velocity{ vx, vy, vz, 0.0f }
+            {}
+
+            ParticleInstance(
+                glm::vec4 pos, 
+                glm::vec4 color,
+                float vx = 0.f, float vy = 0.f, float vz = 1.f
+            )
+                : position{ pos }
+                , color{ color }
                 , velocity{ vx, vy, vz, 0.0f }
             {}
 
@@ -58,12 +66,16 @@ namespace AE {
         PointCloud(const PointCloud& pointcCloud) = delete;
         PointCloud& operator=(const PointCloud& pointCloud) = delete;
 
-        void generatePointCloud(float mean, float deviation);
+        void generatePointCloud(int pointCloudNum, int particleNum, float mean, float deviation);
+        void setPointCloud(
+            std::vector<std::vector<glm::vec4>> pointCloud_position,
+            std::vector<std::vector<glm::vec4>> pointCloud_color
+        );
         void createVertexBuffers();
         void createIndexBuffers();
         void createParticleModel();
         void createSBOObuffers();
-        void createIndirectBuffers();
+        void createIndirectBuffers(int pointCloudNum, std::vector<int> particleNum);
         void bind(FrameInfo& frameInfo);
         void draw(FrameInfo& frameInfo);
 

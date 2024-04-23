@@ -180,6 +180,7 @@
     <None Include="Shaders\TextureShader\simple_shader_with_texture.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3Dvision\RGBD\RGBDvision.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Descriptors.h" />
@@ -207,6 +208,7 @@
     <ClInclude Include="Renderer\WinApplication.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="3Dvision\RGBD\RGBDvision.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Descriptors.cpp" />
@@ -230,6 +232,13 @@
     <ClCompile Include="Renderer\WinApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\..\..\..\Users\meina\Downloads\slambook2-master\slambook2-master\ch5\rgbd\pose.txt" />
+    <Text Include="3Dvision\RGBD\pose.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Text>
     <Text Include="Shaders\SimpleShader\simple_shader.vert" />
     <Text Include="Shaders\SimpleShader\simple_shader.frag" />
     <Text Include="Shaders\SimpleShader\compile_simple.bat" />

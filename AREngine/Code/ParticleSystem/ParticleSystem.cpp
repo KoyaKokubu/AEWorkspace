@@ -4,16 +4,34 @@
 #include "../Utils/AREngineIncludes.h"
 #include "ParticleSystem.h"
 
+#define POINT_CLOUD_NUM 10
+#define PARTICLE_NUM 1000
+
 namespace AE {
 
 	void ParticleSystem::loadPointCloud() {
 		const float pMean(0.0f);
 		const float pDeviation(0.3f);
+		std::vector<int> particleNum(POINT_CLOUD_NUM, PARTICLE_NUM);
+
 		m_pointCloud.createVertexBuffers();
 		m_pointCloud.createIndexBuffers();
-		m_pointCloud.createIndirectBuffers();
+		m_pointCloud.createIndirectBuffers(POINT_CLOUD_NUM, particleNum);
 		//m_pointCloud.createParticleModel();
-		m_pointCloud.generatePointCloud(pMean, pDeviation);
+		m_pointCloud.generatePointCloud(POINT_CLOUD_NUM, PARTICLE_NUM, pMean, pDeviation);
+		m_pointCloud.createSBOObuffers();
+	}
+
+	void ParticleSystem::setPointCloud(
+		int pointCloudNum,
+		std::vector<int> particleNum,
+		std::vector<std::vector<glm::vec4>> pointCloud_position,
+		std::vector<std::vector<glm::vec4>> pointCloud_color)
+	{
+		m_pointCloud.createVertexBuffers();
+		m_pointCloud.createIndexBuffers();
+		m_pointCloud.createIndirectBuffers(pointCloudNum, particleNum);
+		m_pointCloud.setPointCloud(pointCloud_position, pointCloud_color);
 		m_pointCloud.createSBOObuffers();
 	}
 

@@ -1,4 +1,4 @@
-#include <opencv2/opencv.hpp>
+#include "Utils/AREngineIncludes.h"
 
 #include "Texture.h"
 

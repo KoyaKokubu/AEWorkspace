@@ -80,7 +80,9 @@ namespace AE {
 			.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT)
 			.build();
 		loadGameObjects();
-		m_particleSystem.loadPointCloud();
+		//m_particleSystem.loadPointCloud();
+		m_3Dvision.setCameraExternalParameters();
+		m_3Dvision.generatePointCloud();
 		m_renderer.createCommandBuffers();
 	}
 
@@ -160,7 +162,7 @@ namespace AE {
 		}
 
 		//m_camera.setViewDirection(glm::vec3(0.f), glm::vec3(0.5f, 0.f, 1.f));
-		m_camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f)); // second parameter : cube position
+		m_camera.setViewTarget(glm::vec3(0.f, -.1f, -1.8f), glm::vec3(0.f, 0.f, 0.f)); // second parameter : target position
 		GameObject viewerObject = GameObject::createGameObject();
 		viewerObject.m_transformMat.m_translation.z = -2.5f;
 
@@ -222,8 +224,8 @@ namespace AE {
 				m_renderer.beginSwapChainRenderPass(commandBuffer);
 				m_particleSystem.renderPointCloud(frameInfo);
 				// render solid objects first, then render any semi-transparent objects
-				m_simpleRenderSystem.renderGameObjects(frameInfo);
-				m_pointLightSystem.render(frameInfo);
+				//m_simpleRenderSystem.renderGameObjects(frameInfo);
+				//m_pointLightSystem.render(frameInfo);
 				
 				m_renderer.endSwapChainRenderPass(commandBuffer);
 				m_renderer.endFrame();

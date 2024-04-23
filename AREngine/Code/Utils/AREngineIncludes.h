@@ -13,4 +13,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <opencv2/opencv.hpp>
+
 #include <vector>
